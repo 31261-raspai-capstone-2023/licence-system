@@ -6,7 +6,7 @@
 
 ### To load:
 ```
-python -m venv .env && source .env/bin/activate && pip install -r requirements.txt
+python -m venv .venv && source .env/bin/activate && pip install -r requirements.txt
 ```
 
 ### To save if you have used pip, etc:
