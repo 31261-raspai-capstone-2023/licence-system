@@ -5,5 +5,5 @@ EPOCHS = 50
 
 # Other settings
 IMAGE_SIZE = (256, 256)
-ANNOTATION_DIRECTORY = './data/kaggle-dataset-433/annotations'
-IMAGE_DIRECTORY = './data/kaggle-dataset-433/images'
+ANNOTATION_DIRECTORY = "./data/kaggle-dataset-433/annotations"
+IMAGE_DIRECTORY = "./data/kaggle-dataset-433/images"
