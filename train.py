@@ -61,74 +61,7 @@ transform = transforms.Compose([
 # Create an instance of the custom dataset
 dataset = CustomALPRDataset(image_dir='data/kaggle-dataset-433/train/images', annotation_dir='data/kaggle-dataset-433/train/annotations', transform=transform)
 
-for sample in range(0, len(dataset)):
-    print(dataset[sample])
+print("Image Data:", dataset[0].get("bbox"))
 
 # DataLoader can be used for batching and shuffling the dataset during training
 data_loader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=True)
-
-
-# TRAINING
-import os
-import torch
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
-from torchvision.transforms import functional as F
-from torch.utils.data import DataLoader
-from torchvision.models.detection import FasterRCNN
-from torchvision.models.detection.rpn import AnchorGenerator
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-import torchvision.transforms as T
-#from engine import train_one_epoch, evaluate
-import utils
-
-# Set device to GPU if available, otherwise use CPU
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-# Define paths to your training and validation datasets
-train_image_dir = 'path/to/train/images'
-train_annotation_dir = 'path/to/train/annotations'
-val_image_dir = 'path/to/val/images'
-val_annotation_dir = 'path/to/val/annotations'
-
-# Define the transform for image preprocessing
-transform = T.Compose([
-    T.ToPILImage(),
-    T.Resize((224, 224)),
-    T.ToTensor(),
-    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
-# Create custom datasets for training and validation
-train_dataset = CustomALPRDataset(train_image_dir, train_annotation_dir, transform)
-val_dataset = CustomALPRDataset(val_image_dir, val_annotation_dir, transform)
-
-# Create data loaders for training and validation
-train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, num_workers=4, collate_fn=utils.collate_fn)
-val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=utils.collate_fn)
-
-# Create a Faster R-CNN model with a ResNet-50 backbone
-model = fasterrcnn_resnet50_fpn(pretrained=True)
-num_classes = 2  # Background and license plate
-in_features = model.roi_heads.box_predictor.cls_score.in_features
-model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-
-# Move the model to the GPU (if available)
-model.to(device)
-
-# Define the optimizer and learning rate scheduler
-params = [p for p in model.parameters() if p.requires_grad]
-optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
-lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
-
-# Training loop
-num_epochs = 10  # Adjust as needed
-for epoch in range(num_epochs):
-    # Training
-    train_one_epoch(model, optimizer, train_loader, device, epoch, print_freq=10)
-    lr_scheduler.step()
-
-    # Validation
-    evaluate(model, val_loader, device=device)
-
-# Save the trained model
-torch.save(model.state_dict(), 'alpr_model.pth')
