@@ -2,7 +2,3 @@ data/
 .venv*
 .env
 __pycache__
-
-# erencan is using these locally while he's learning wtf is going on
-localTestingData/
-localTrainingData/
