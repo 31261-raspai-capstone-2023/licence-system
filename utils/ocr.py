@@ -23,10 +23,13 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
     # Crop the image
     cropped_image = image[y : y + height, x : x + width]
 
-    cv2.imshow("Image", cropped_image)
-    cv2.waitKey(0)
+    
 
     # Extract text
-    extracted_text = pytesseract.image_to_string(cropped_image)
-
+    extracted_text = pytesseract.image_to_string(
+        cropped_image,
+        lang="eng",
+        config="--oem 3 --psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    )
+    
     return extracted_text
