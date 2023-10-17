@@ -9,8 +9,8 @@ from licence_system.utils.ocr import ocr_with_coordinates
 # Define test cases
 @pytest.mark.parametrize(
     "image_path, coordinates, expected_text",
+    # (path_to_img, (x, y, width, height), expected_text)
     [
-        # (path_to_img, (x, y, width, height), expected_text)
         ("./tests/ocr/1.jpg", (90, 40, 720, 280), "SEB384"),
         ("./tests/ocr/1.jpg", (90, 300, 720, 280), "600063"),
         ("./tests/ocr/1.jpg", (90, 600, 720, 280), "NOA770"),
