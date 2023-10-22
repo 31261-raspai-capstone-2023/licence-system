@@ -1,46 +1,6 @@
-argcomplete==2.0.0
-autopep8==1.7.0
-certifi==2022.12.7
-charset-normalizer==2.1.1
-click==8.1.3
-colorama==0.4.6
-emoji==2.2.0
-filelock==3.9.0
-Flask==2.2.2
-fsspec==2023.4.0
-idna==3.4
-itsdangerous==2.1.2
-Jinja2==3.1.2
-markdown2==2.4.6
-MarkupSafe==2.1.1
-mpmath==1.3.0
-networkx==3.0
-numpy==1.26.0
-opencv-python==4.8.1.78
-packaging==21.3
-# packaging==22
-Pillow==9.3.0
-pip-autoremove==0.10.0
-pipx==1.1.0
-pycodestyle==2.9.1
-pygame==2.1.2
-# pygame==2.5.2
-pyparsing==3.0.9
-requests==2.28.1
-slack-export-viewer==1.1.4
-sympy==1.12
-toml==0.10.2
-torch==2.1.0+cu121
-# torch==2.1.0
-torchaudio==2.1.0+cu121
-# torchaudio==2.1.0
-torchvision==0.16.0+cu121
-# torchvision==0.16.0
-typing_extensions==4.4.0
-urllib3==1.26.13
-userpath==1.8.0
-Werkzeug==2.2.2
-
-# OCR
+roboflow
+tqdm
+python-dotenv
 opencv-python
-pytesseract
+numpy
+torch

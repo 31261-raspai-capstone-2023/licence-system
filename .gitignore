@@ -125,6 +125,7 @@ celerybeat.pid
 
 # Environments
 .env
+<<<<<<< HEAD
 .envrc
 .venv
 env/
@@ -197,3 +198,4 @@ pyrightconfig.json
 
 data/
 .venv*
+Vehicle-Registration-Plates-2/
