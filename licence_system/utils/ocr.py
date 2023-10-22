@@ -145,21 +145,26 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
     cropped_image = cv2.convertScaleAbs(cropped_image, alpha=0.5, beta=30)
     # cropped_image = cv2.convertScaleAbs(cropped_image, alpha=2.0, beta=30)
 
+    # # Sharpening
+    # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    # cropped_image = cv2.filter2D(cropped_image, -1, kernel)
+
     # # Convert to greyscale
 
     # # Binarization
-    _, binary = cv2.threshold(
-        cropped_image, 0, 300, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    )
+    # _, binary = cv2.threshold(
+    #     cropped_image, 0, 300, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    # )
 
     # # Resize for better accuracy
-    binary = cv2.resize(binary, None, fx=10, fy=10, interpolation=cv2.INTER_LINEAR)
 
-    # # binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(binary)
+    binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(cropped_image)
+    # binary = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8, 8)).apply(cropped_image)
+    # binary = cv2.resize(binary, None, fx=10, fy=10, interpolation=cv2.INTER_LINEAR)
 
-    # cv2.imshow("Image", binary)
-    # # cv2.imshow("Image", cropped_image)
-    # cv2.waitKey(0)
+    cv2.imshow("Image", binary)
+    # cv2.imshow("Image", cropped_image)
+    cv2.waitKey(0)
 
     # Extract text
     # psm=8, 6
