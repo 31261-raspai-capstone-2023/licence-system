@@ -2,7 +2,6 @@
 
 import cv2
 import pytest
-
 from licence_system.utils.ocr import ocr_with_coordinates
 
 
@@ -11,9 +10,11 @@ from licence_system.utils.ocr import ocr_with_coordinates
     "image_path, coordinates, expected_text",
     # (path_to_img, (x, y, width, height), expected_text)
     [
-        ("./tests/ocr/1.jpg", (90, 40, 720, 280), "SEB384"),
-        ("./tests/ocr/1.jpg", (90, 300, 720, 280), "600063"),
-        ("./tests/ocr/1.jpg", (90, 600, 720, 280), "NOA770"),
+        ("./tests/ocr/1.jpg", (30, 10, 252, 97), "SEB384"),
+        ("./tests/ocr/1.jpg", (30, 100, 252, 97), "600063"),
+        ("./tests/ocr/1.jpg", (35, 190, 252, 97), "NOA770"),
+        # ("./tests/ocr/1.jpg", (30, 190, 252, 97), "NOA770"),
+        ("./tests/ocr/2.jpg", (165, 295, 57, 35), "BE33TA"),
     ],
 )
 def test_ocr_with_coordinates(image_path, coordinates, expected_text):
