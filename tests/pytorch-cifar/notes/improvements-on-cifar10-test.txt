@@ -1,7 +1,0 @@
-Default: range(2), 6 CONV layers, 53% accurate
-
-Souped up: range(5), 30 CONV layers, 66% accurate, Cat/bird is lowest at 36%
-
-Wide boi: range(5), 200 CONV layers, 15sec per 2000, 67% accurate, cat lowest at 51%
-
-FATTY: range(20), 200 CONV layers, 15sec per 2000, 68% accurate, dog lowest at 46%

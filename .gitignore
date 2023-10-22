@@ -196,6 +196,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
-data/
+/data/
 .venv*
-Vehicle-Registration-Plates-2/
