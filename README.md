@@ -24,5 +24,8 @@ Install tesseract
 sudo apt-get install tesseract-ocr
 ```
 
+```bash
+python -m licence_system.main
+```
 Docker 
 

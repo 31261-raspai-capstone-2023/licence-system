@@ -1,111 +1,139 @@
 import os
-import xml.etree.ElementTree as ET
+import shutil
 
-import cv2
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 import numpy as np
+import torch
+from PIL import Image
 
 
-def parse_annotations(directory):
+def separate_images_and_annotations(source_folder: str, images_folder: str, annotations_folder: str):
     """
-    Parse XML annotations in the given directory.
-    Return structured data with filenames and associated bounding boxes.
+    Separate image and annotation files into distinct folders.
+
+    Args:
+        source_folder (str): Path to the source folder containing both images and annotations.
+        images_folder (str): Path to the destination folder for images.
+        annotations_folder (str): Path to the destination folder for annotations.
     """
-    annotations = []
+    
+    # Download from Roboflow
+    # from roboflow import Roboflow
+    # rf = Roboflow(api_key="")
+    # project = rf.workspace("augmented-startups").project("vehicle-registration-plates-trudk")
+    # dataset = project.version(1).download("voc")
 
-    for xml_file in os.listdir(directory):
-        if xml_file.endswith(".xml"):
-            tree = ET.parse(os.path.join(directory, xml_file))
-            root = tree.getroot()
+    # Ensure the destination folders exist; create them if they don't
+    os.makedirs(images_folder, exist_ok=True)
+    os.makedirs(annotations_folder, exist_ok=True)
 
-            image_data = {
-                "filename": root.find("filename").text,
-                "width": int(root.find("size/width").text),
-                "height": int(root.find("size/height").text),
-                "objects": [],
-            }
+    # Loop through files in the source folder
+    for filename in os.listdir(source_folder):
+        # Check if the file is a JPG image
+        if filename.lower().endswith('.jpg'):
+            source_file_path = os.path.join(source_folder, filename)
+            destination_file_path = os.path.join(images_folder, filename)
+            # Move the JPG file to the images folder
+            shutil.move(source_file_path, destination_file_path)
+        # Check if the file is an XML annotation file
+        elif filename.lower().endswith('.xml'):
+            source_file_path = os.path.join(source_folder, filename)
+            destination_file_path = os.path.join(annotations_folder, filename)
+            # Move the XML file to the annotations folder
+            shutil.move(source_file_path, destination_file_path)
 
-            for obj in root.findall("object"):
-                obj_data = {
-                    "name": obj.find("name").text,
-                    "xmin": int(obj.find("bndbox/xmin").text),
-                    "ymin": int(obj.find("bndbox/ymin").text),
-                    "xmax": int(obj.find("bndbox/xmax").text),
-                    "ymax": int(obj.find("bndbox/ymax").text),
-                }
-                image_data["objects"].append(obj_data)
+    print("Separation completed.")
 
-            annotations.append(image_data)
-
-    return annotations
-
-
-def load_and_preprocess_image(image_path):
+# TO-DO: move to data_visualisations
+def show_imgs(data: list):
     """
-    Load and preprocess the image.
-    Resize to 256x256 and normalize pixel values.
+    Display multiple images with bounding boxes.
+    
+    Args:
+        data: A list of lists. Each inner list contains: [title, image, original_bbox, predicted_bbox]
     """
-    # Load the image
-    img = cv2.imread(image_path)
+    
+    num_imgs = len(data)
+    fig, axes = plt.subplots(1, num_imgs, figsize=(15, 5 * num_imgs))
+    
+    # If there's only one image, axes won't be a list, so we wrap it in a list for consistency
+    if num_imgs == 1:
+        axes = [axes]
+    
+    for ax, (title, image, orig_bbox, pred_bbox) in zip(axes, data):
+        # Handle torch.Tensor
+        if isinstance(image, torch.Tensor):
+            if image.is_cuda:
+                image = image.cpu()  # Move tensor to CPU if it's on CUDA
 
-    # Convert from BGR to RGB
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            if image.dim() == 4:  # If a batch of images
+                image = image[0]  # Take the first image
 
-    # Resize the image to 256x256
-    img_resized = cv2.resize(img, (256, 256))
+            img = image.detach().permute(1, 2, 0).numpy()  # permute to HWC layout
+        # Handle PIL.Image
+        elif isinstance(image, Image.Image):
+            img = np.array(image)
+        else:
+            img = image.copy()
 
-    # Normalize the pixel values to [0, 1]
-    img_normalized = img_resized / 255.0
+        # If the image values are between 0 and 1, scale them to [0, 255]
+        # If the image values are between 0 and 1, scale them to [0, 255]
+        if isinstance(img, np.ndarray) and img.max() <= 1.0:
+            img = img * 255
+            
+        ax.imshow(img.astype(int), cmap='gray' if len(img.shape) == 2 or img.shape[2] == 1 else None)
 
-    return img_normalized
+        # Draw the original bounding box
+        x, y, x1, y1 = orig_bbox
+        if isinstance(orig_bbox, torch.Tensor):
+            x, y, x1, y1 = orig_bbox.cpu().numpy()
+        rect_orig = patches.Rectangle((x, y), x1 - x, y1 - y, linewidth=2, edgecolor='b', facecolor='none')
+        ax.add_patch(rect_orig)
 
+        # Draw the predicted bounding box
+        x, y, x1, y1 = pred_bbox
+        if isinstance(pred_bbox, torch.Tensor):
+            x, y, x1, y1 = pred_bbox.cpu().numpy()
+        rect_pred = patches.Rectangle((x, y), x1 - x, y1 - y, linewidth=2, edgecolor='y', facecolor='none')
+        ax.add_patch(rect_pred)
 
-def adjust_bounding_boxes(original_dims, target_dims, bounding_box):
-    """
-    Adjust bounding box coordinates based on image resizing.
-    """
-    original_width, original_height = original_dims
-    target_width, target_height = target_dims
+        ax.set_title(title)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    
 
-    # Calculate scaling factors for width and height
-    width_scale = target_width / original_width
-    height_scale = target_height / original_height
+def split_data(training_dataset, test_to_train_percent: float):
+    resized_images = [Image.fromarray(i[0]) for i in training_dataset.training_data]
+    numpy_data = np.array([np.array(img.resize((416, 416))) for img in resized_images])
+    X = torch.Tensor(numpy_data)
 
-    # Adjust bounding box coordinates
-    adjusted_box = {
-        "xmin": int(bounding_box["xmin"] * width_scale),
-        "ymin": int(bounding_box["ymin"] * height_scale),
-        "xmax": int(bounding_box["xmax"] * width_scale),
-        "ymax": int(bounding_box["ymax"] * height_scale),
-    }
+    X = X / 255.0
 
-    return adjusted_box
+    numpy_bbox = np.array([
+        ([416/resized_images[i].width, 416/resized_images[i].height, 416/resized_images[i].width, 416/resized_images[i].height] * np.array(data[1])) for i, data in enumerate(training_dataset.training_data)])
+    y = torch.Tensor(numpy_bbox)
 
+    val_size = int(len(X) * test_to_train_percent)
 
-from torch.utils.data import DataLoader, Dataset
+    # create test and training splits
+    training_dataset.train_X = X[:-val_size]
+    training_dataset.train_Y = y[:-val_size]
 
+    training_dataset.test_X = X[-val_size:]
+    training_dataset.test_y = y[-val_size:]
 
-class LicensePlateDataset(Dataset):
-    def __init__(self, image_dir, annotation_dir, transform=None):
-        self.annotations = parse_annotations(annotation_dir)
-        self.image_dir = image_dir
-        self.transform = transform
+    print(len(training_dataset.train_X))
+    print(len(training_dataset.test_X))
 
-    def __len__(self):
-        return len(self.annotations)
-
-    def __getitem__(self, idx):
-        image_data = self.annotations[idx]
-        image_path = os.path.join(self.image_dir, image_data["filename"])
-        image = load_and_preprocess_image(image_path)
-        bbox = adjust_bounding_boxes(
-            (image_data["width"], image_data["height"]),
-            (256, 256),
-            image_data["objects"][0],
-        )  # Assuming one plate per image
-
-        sample = {"image": image, "bbox": bbox}
-
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
+    demo_arr = []
+    for i in range(5):
+        demo_arr.append(["Image #{}".format(i), Image.fromarray(training_dataset.training_data[i][0]), np.array(training_dataset.training_data[i][1]), [0.2, 0.4, 0.2, 0.4] * np.array(training_dataset.training_data[i][1])])
+    show_imgs(demo_arr)
+    demo_arr = []
+    for i in range(5):
+        orig_img = Image.fromarray(training_dataset.training_data[i][0])
+        demo_arr.append(["Image #{}".format(i), numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]])
+    show_imgs(demo_arr)
