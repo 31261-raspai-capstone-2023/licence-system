@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from licence_system.utils.data_loader import show_imgs
+from licence_system.utils.logger import logger
 from licence_system.utils.model_class import LPLocalNet, LPR_Training_Dataset_Processed
 from PIL import Image
 from torch.utils.data import DataLoader, TensorDataset
@@ -54,7 +55,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     # Initialize neural network and transfer to device
     training_dataset.neural_network = LPLocalNet().to(device)
     net = training_dataset.neural_network
-    print("Running", net.__class__.__name__, "on", device)
+    logger.info("Running", net.__class__.__name__, "on", device)
 
     # Set optimizer and loss function
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
@@ -87,10 +88,10 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     batch_count = 0
     final_epoch = 0
 
-    print(
+    logger.info(
         f"The above loss plot will start from Epoch #{start_loss_plot} onwards, to enhance readability."
     )
-    print("Waiting 2s before starting training...")
+    logger.info("Waiting 2s before starting training...")
     time.sleep(2)
     start_time = time.time()
 
@@ -145,7 +146,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
         )
         completion_time = seconds_to_hms((EPOCHS - epoch - 1) * avg_epoch_duration)
 
-        print(
+        logger.info(
             f"Epoch #{str(epoch).ljust(3)} - Loss: {loss_simple:.3f} - Loss Diff: {loss_diff:.3f}% - Loss Trend: {avg_loss_trend:.3f} - Complete in: {completion_time}s"
         )
 
@@ -154,8 +155,8 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
             and avg_loss_trend > LOSS_ABANDON
             and not avg_loss_trend == 0
         ):
-            print("--- LOSS TREND TOO HIGH ---")
-            print(f"Abandoning training at Epoch #{epoch}")
+            logger.info("--- LOSS TREND TOO HIGH ---")
+            logger.info(f"Abandoning training at Epoch #{epoch}")
             break
 
         final_epoch = epoch
@@ -163,7 +164,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     # Training completion
     end_time = time.time()
     total_duration = end_time - start_time
-    print("Total training time: {:.2f} seconds".format(total_duration))
+    logger.info("Total training time: {:.2f} seconds".format(total_duration))
     pp.finalize()
     return final_epoch
 
@@ -198,11 +199,11 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
             net_out = net(training_dataset.test_X[i].to(device).view(-1, 1, 416, 416))[
                 0
             ]
-            # print(net_out)
+            # logger.info(net_out)
             # predicted_bbox = torch.argmax(net_out)
             predicted_bbox = net_out
-            # print(predicted_bbox[0], real_bbox[0])
-            # print("Comparing", predicted_bbox, "with", real_bbox, "- Result: ", end="")
+            # logger.info(predicted_bbox[0], real_bbox[0])
+            # logger.info("Comparing", predicted_bbox, "with", real_bbox, "- Result: ", end="")
 
             if (
                 close_enough(predicted_bbox[0], real_bbox[0])
@@ -220,7 +221,7 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
                             predicted_bbox,
                         ]
                     )
-                    print(
+                    logger.info(
                         training_dataset.test_Y[i].shape,
                         training_dataset.test_X[i].shape,
                     )
@@ -231,14 +232,14 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
                 og_correctdata.append(
                     [np.asarray(training_dataset.test_Y[i].cpu()), real_bbox.cpu()]
                 )
-                # print("Success!")
+                # logger.info("Success!")
             # else:
-            # print("Fail.")
+            # logger.info("Fail.")
             total += 1
-            # print(real_bbox, net_out)
+            # logger.info(real_bbox, net_out)
 
     accuracy = round((correct / total) * 100, 3)
-    print("Accuracy:", accuracy, "%")
+    logger.info("Accuracy:", accuracy, "%")
     show_imgs(demo_arr)
 
     torch.cuda.empty_cache()

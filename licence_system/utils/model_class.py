@@ -10,8 +10,10 @@ from PIL import Image
 from tqdm import tqdm
 
 
-class LPR_Training_Dataset_Processed():
-    def __init__(self, image_path: str, annotation_path: str, testing_images_size: float):
+class LPR_Training_Dataset_Processed:
+    def __init__(
+        self, image_path: str, annotation_path: str, testing_images_size: float
+    ):
         self.IMAGES_FOLDER: str = image_path
         self.ANNOTATIONS_FOLDER: str = annotation_path
         self.TESTING_IMAGES_SIZE: float = testing_images_size
@@ -22,7 +24,7 @@ class LPR_Training_Dataset_Processed():
         self.training_data: list = []
         # self.testing_data: List[Tuple[np.ndarray, Tuple[int, int, int, int]]] = []
         self.testing_data: list = []
-        
+
         # self.train_X: List[np.ndarray] = []
         self.train_X: torch.Tensor = None
         # self.train_Y: List[Tuple[int, int, int, int]] = []
@@ -31,45 +33,55 @@ class LPR_Training_Dataset_Processed():
         self.test_X: torch.Tensor = None
         # self.test_Y: List[Tuple[int, int, int, int]] = []
         self.test_Y: torch.Tensor = None
-        
+
         self.neural_network: nn.Module = None
 
     def create_training_data(self):
-        """_summary_
-        """
+        """_summary_"""
         testing_size = len(self.img_list) * self.TESTING_IMAGES_SIZE
 
         i = 0
         for a in tqdm(range(max(2000, len(self.img_list)))):
             img_data = self.img_list[a]
             img_path = os.path.join(self.IMAGES_FOLDER, img_data)
-            ANNOTATIONS_FOLDER = os.path.join(self.ANNOTATIONS_FOLDER, img_data.replace('.jpg', '.xml')) # get required image annotations
+            ANNOTATIONS_FOLDER = os.path.join(
+                self.ANNOTATIONS_FOLDER, img_data.replace(".jpg", ".xml")
+            )  # get required image annotations
             with Image.open(img_path).convert("L") as img:
                 with open(ANNOTATIONS_FOLDER) as source:
                     root = ET.parse(source).getroot()
-                    
+
                     # Iterate through the XML and extract bounding box coordinates
-                    for obj in root.findall('.//object'):
-                        bndbox = obj.find('bndbox')
-                        xmin = int(bndbox.find('xmin').text)
-                        ymin = int(bndbox.find('ymin').text)
-                        xmax = int(bndbox.find('xmax').text)
-                        ymax = int(bndbox.find('ymax').text)
-                    
-                    bounding_box_coordinates = (xmin, ymin, xmax, ymax) # resize bounding box to fit resized image
-                    
-                    if (i < testing_size):
-                        #self.testing_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
-                        self.testing_data.append([np.asarray(img), bounding_box_coordinates])
+                    for obj in root.findall(".//object"):
+                        bndbox = obj.find("bndbox")
+                        xmin = int(bndbox.find("xmin").text)
+                        ymin = int(bndbox.find("ymin").text)
+                        xmax = int(bndbox.find("xmax").text)
+                        ymax = int(bndbox.find("ymax").text)
+
+                    bounding_box_coordinates = (
+                        xmin,
+                        ymin,
+                        xmax,
+                        ymax,
+                    )  # resize bounding box to fit resized image
+
+                    if i < testing_size:
+                        # self.testing_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
+                        self.testing_data.append(
+                            [np.asarray(img), bounding_box_coordinates]
+                        )
                     else:
-                        self.training_data.append([np.asarray(img), bounding_box_coordinates])
-                        #self.training_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
+                        self.training_data.append(
+                            [np.asarray(img), bounding_box_coordinates]
+                        )
+                        # self.training_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
             i += 1
 
         np.random.shuffle(self.training_data)
         print(f"Training Images: {len(self.training_data)}")
         print(f"Testing Images: {len(self.testing_data)}")
-        
+
 
 class LPLocalNet(nn.Module):
     def __init__(self):
@@ -117,6 +129,5 @@ class LPLocalNet(nn.Module):
         box_t = F.relu(box_t)
 
         box_t = self.box_out(box_t)
-       
 
         return box_t
