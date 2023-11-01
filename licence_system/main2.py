@@ -1,6 +1,6 @@
 import os
 import random
-
+import faulthandler
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,9 +15,13 @@ from PIL import Image
 PATH = "licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc78.84.pth"
 IMAGE_PATH = "inference-images"
 
+faulthandler.enable()
+
 print(f"Loading Model: {PATH}")
 model = LPLocalNet()
-model.load_state_dict(torch.load(PATH, map_location="cpu"))
+map_location=torch.device('cpu')
+state_dict = torch.load(PATH, map_location=map_location)
+model.load_state_dict(state_dict)
 model.eval()
 print("Successfully loaded model!")
 
@@ -44,5 +48,9 @@ with Image.open(selected_img).convert("L") as img:
     model_in = X.view(-1, 1, 416, 416)
     print(model_in)
     net_out = model(model_in)
-    print(f"Estimate bounding box: {net_out}")
-    show_imgs([[selected_img, img, (0, 0, 0, 0), (0, 0, 0, 0)]])
+    print("Input Shape:", model_in.shape)
+    out1 = model.conv1(model_in)
+    print("After conv1:", out1.shape)
+    # print(f"Estimate bounding box: {net_out}")
+    # show_imgs([[selected_img, img, (0, 0, 0, 0), (0, 0, 0, 0)]])
+
