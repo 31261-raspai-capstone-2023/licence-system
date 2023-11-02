@@ -125,6 +125,7 @@ celerybeat.pid
 
 # Environments
 .env
+<<<<<<< HEAD
 .envrc
 .venv
 env/
@@ -195,5 +196,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
-data/
+/data/
 .venv*

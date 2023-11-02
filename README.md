@@ -19,4 +19,13 @@ pip install -r requirements-dev.txt
 ```
 
 ## Prod setup
+Install tesseract
+```bash
+sudo apt-get install tesseract-ocr
+```
+
+```bash
+python -m licence_system.main
+```
 Docker 
+
