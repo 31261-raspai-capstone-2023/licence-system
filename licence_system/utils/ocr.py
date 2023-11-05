@@ -4,6 +4,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 import pytesseract
+# import imutils
 
 pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/bin/tesseract"
 
@@ -144,6 +145,18 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
 
     cropped_image = cv2.convertScaleAbs(cropped_image, alpha=0.5, beta=30)
     # cropped_image = cv2.convertScaleAbs(cropped_image, alpha=2.0, beta=30)
+    
+    # https://yashlahoti.medium.com/number-plate-recognition-in-python-using-tesseract-ocr-cc15853aca36
+    # https://github.com/kangsunghyun111/Car-license-plate-recognition-using-tesseract-OCR/blob/master/main.cpp
+    # https://stackoverflow.com/questions/66935787/why-does-tesseract-not-recognize-the-text-on-the-licence-plate-while-easyocr-doe
+    # https://stackoverflow.com/questions/55349307/how-to-tune-tesseract-for-identifying-number-plate-of-a-car-more-accurately
+    # https://stackoverflow.com/questions/72381645/python-tesseract-license-plate-recognition
+    # https://www.google.com/search?q=teseract+ocr+on+blurry+licence+plate+image
+    # cropped_image = cv2.bilateralFilter(cropped_image, 100, 5, 5)
+    # cropped_image = cv2.Canny(cropped_image, 10, 5)
+    # contours = cv2.findContours(cropped_image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # contours = imutils.grab_contours(contours)
+    # contours = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
 
     # # Sharpening
     # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
@@ -158,12 +171,12 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
 
     # # Resize for better accuracy
 
-    binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(cropped_image)
+    # binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(cropped_image)
     # binary = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8, 8)).apply(cropped_image)
     # binary = cv2.resize(binary, None, fx=10, fy=10, interpolation=cv2.INTER_LINEAR)
 
-    cv2.imshow("Image", binary)
-    # cv2.imshow("Image", cropped_image)
+    # cv2.imshow("Image", binary)
+    cv2.imshow("Image", cropped_image)
     cv2.waitKey(0)
 
     # Extract text
@@ -172,6 +185,7 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
         cropped_image,
         lang="eng",
         config="--oem 3 --psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        # config="--oem 3 --psm 11 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     )
 
     return extracted_text
