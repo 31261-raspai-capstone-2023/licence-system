@@ -19,7 +19,25 @@ pip install -r requirements-dev.txt
 ```
 
 ## Prod Setup
-### Running via Docker (preferred)
+### Running the stack via Docker (preferred)
+If your looking to spin up the entire stack (web app included), use the docker compose file
+
+First build image for the model server
+```bash
+docker build . -t licence_system/licence_system:latest
+```
+
+Then build the image for the web app from https://github.com/31261-raspai-capstone-2023/web-app
+```bash
+docker build . -t licence_system/web_app:latest
+```
+
+Then spin the stack up
+```bash
+docker compose up -d
+```
+
+### Running standalone via Docker
 Build the image
 ```bash
 docker build . -t licence_system/licence_system:latest

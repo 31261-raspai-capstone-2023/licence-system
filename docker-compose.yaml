@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    image: licence_system/web_app
+    ports:
+      - "8080:5000"
+    environment:
+      - TZ=Australia/Sydney
+  model_server:
+    image: licence_system/licence_system
+    environment:
+      - TZ=Australia/Sydney
