@@ -14,15 +14,14 @@ from PIL import Image
 from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.model_class import LPLocalNet
 
-PATH = "licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc78.84.pth"
+PATH = "licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.22.pth"
 IMAGE_PATH = "inference-images"
 
 faulthandler.enable()
 
 print(f"Loading Model: {PATH}")
 model = LPLocalNet()
-map_location = torch.device("cpu")
-state_dict = torch.load(PATH, map_location=map_location)
+state_dict = torch.load(PATH, map_location='cpu')
 model.load_state_dict(state_dict)
 model.eval()
 print("Successfully loaded model!")
@@ -53,5 +52,5 @@ with Image.open(selected_img).convert("L") as img:
     print("Input Shape:", model_in.shape)
     out1 = model.conv1(model_in)
     print("After conv1:", out1.shape)
-    # print(f"Estimate bounding box: {net_out}")
-    # show_imgs([[selected_img, img, (0, 0, 0, 0), (0, 0, 0, 0)]])
+    print(f"Estimate bounding box: {net_out.detach().cpu()}")
+    #show_imgs([[selected_img, img, (0, 0, 0, 0), (0, 0, 0, 0)]])
