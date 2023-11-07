@@ -10,10 +10,19 @@ from typing import Tuple
 import cv2
 import numpy as np
 import pytesseract
+import os
 
 # import imutils
 
-pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/bin/tesseract"
+# Retrieve the TESSERACT_CMD environment variable
+tesseract_cmd = os.getenv('TESSERACT_CMD')
+
+# If the environment variable is not set, raise an exception
+if tesseract_cmd is None:
+    raise EnvironmentError('The TESSERACT_CMD environment variable is not set.')
+
+# Set the tesseract command for pytesseract
+pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
 def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
