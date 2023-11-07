@@ -1,29 +1,33 @@
-# Imports
+"""
+This file defines the functions for training the NN
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import os
 import time
 
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn
+from torch import optim
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.logger import logger
 from licence_system.utils.model_class import LPLocalNet, LPR_Training_Dataset_Processed
-from PIL import Image
-from torch.utils.data import DataLoader, TensorDataset
-from tqdm import tqdm
+from licence_system.config import ACCEPTABLE_DISTANCE
 
 
 def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
-    """_summary_
+    """Trainer main function
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): _description_
+        training_dataset (LPR_Training_Dataset_Processed): training dataset object
 
     Returns:
-        _type_: _description_
+        int: final epoch value
     """
     # BATCH_SIZE memory requirements:
     #   - 250 approx eq. 6.6 GB (fine on secondary 8GB VRAM GPU)
@@ -46,7 +50,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     def seconds_to_hms(seconds):
         h, remainder = divmod(seconds, 3600)
         m, s = divmod(remainder, 60)
-        return "{:02}:{:02}:{:02}".format(int(h), int(m), int(s))
+        return f"{int(h):02}:{int(m):02}:{int(s):02}"
 
     # Set device for training
     torch.cuda.empty_cache()
@@ -55,7 +59,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     # Initialize neural network and transfer to device
     training_dataset.neural_network = LPLocalNet().to(device)
     net = training_dataset.neural_network
-    logger.info("Running", net.__class__.__name__, "on", device)
+    logger.info("Running %s on %s", net.__class__.__name__, device)
 
     # Set optimizer and loss function
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
@@ -89,7 +93,8 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     final_epoch = 0
 
     logger.info(
-        f"The above loss plot will start from Epoch #{start_loss_plot} onwards, to enhance readability."
+        "The above loss plot will start from Epoch #%d onwards, to enhance readability.",
+        start_loss_plot,
     )
     logger.info("Waiting 2s before starting training...")
     time.sleep(2)
@@ -147,7 +152,12 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
         completion_time = seconds_to_hms((EPOCHS - epoch - 1) * avg_epoch_duration)
 
         logger.info(
-            f"Epoch #{str(epoch).ljust(3)} - Loss: {loss_simple:.3f} - Loss Diff: {loss_diff:.3f}% - Loss Trend: {avg_loss_trend:.3f} - Complete in: {completion_time}s"
+            "Epoch #%s - Loss: %.3f - Loss Diff: %.3f%% - Loss Trend: %.3f - Complete in: %ss",
+            str(epoch).ljust(3),
+            loss_simple,
+            loss_diff,
+            avg_loss_trend,
+            completion_time,
         )
 
         if (
@@ -156,7 +166,7 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
             and not avg_loss_trend == 0
         ):
             logger.info("--- LOSS TREND TOO HIGH ---")
-            logger.info(f"Abandoning training at Epoch #{epoch}")
+            logger.info("Abandoning training at Epoch #%s", epoch)
             break
 
         final_epoch = epoch
@@ -164,16 +174,22 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     # Training completion
     end_time = time.time()
     total_duration = end_time - start_time
-    logger.info("Total training time: {:.2f} seconds".format(total_duration))
+    logger.info("Total training time: %02f seconds", float(total_duration))
     pp.finalize()
     return final_epoch
 
 
 def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
+    """Get the accuracy of the model
+
+    Args:
+        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+
+    Returns:
+        float: accuracy
+    """
     correct = 0
     total = 0
-
-    ACCEPTABLE_DISTANCE = 15
 
     correct_data = []
     og_correctdata = []
@@ -215,7 +231,7 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
                 if len(demo_arr) < 5:
                     demo_arr.append(
                         [
-                            "Image #{}".format(i),
+                            f"Image #{i}",
                             training_dataset.test_X[i].view(-1, 1, 416, 416),
                             real_bbox,
                             predicted_bbox,
@@ -239,10 +255,11 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
             # logger.info(real_bbox, net_out)
 
     accuracy = round((correct / total) * 100, 3)
-    logger.info("Accuracy:", accuracy, "%")
+    logger.info("Accuracy: %s %%", accuracy)
     show_imgs(demo_arr)
 
     torch.cuda.empty_cache()
+
     return accuracy
 
 

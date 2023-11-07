@@ -1,4 +1,10 @@
-"""Log car plate to front end"""
+"""
+This file defines all the utility functions for logging a plate to the front end web app
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 from typing import Union
 
 import requests
@@ -26,7 +32,7 @@ def send_license_plate(license_plate: str, camera_id: int) -> Union[Response, bo
     headers = {"Content-Type": "application/json"}
 
     try:
-        response = requests.post(api_url, json=data, headers=headers)
+        response = requests.post(api_url, json=data, headers=headers, timeout=10)
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:

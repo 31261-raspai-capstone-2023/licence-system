@@ -1,9 +1,16 @@
-"""Extract plate from image using OCR"""
+"""
+This file defines the functions for extracting the plate text from image using OCR
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 from typing import Tuple
 
 import cv2
 import numpy as np
 import pytesseract
+
 # import imutils
 
 pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/bin/tesseract"
@@ -145,7 +152,7 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
 
     cropped_image = cv2.convertScaleAbs(cropped_image, alpha=0.5, beta=30)
     # cropped_image = cv2.convertScaleAbs(cropped_image, alpha=2.0, beta=30)
-    
+
     # https://yashlahoti.medium.com/number-plate-recognition-in-python-using-tesseract-ocr-cc15853aca36
     # https://github.com/kangsunghyun111/Car-license-plate-recognition-using-tesseract-OCR/blob/master/main.cpp
     # https://stackoverflow.com/questions/66935787/why-does-tesseract-not-recognize-the-text-on-the-licence-plate-while-easyocr-doe

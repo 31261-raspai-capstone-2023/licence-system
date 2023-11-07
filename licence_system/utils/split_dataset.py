@@ -1,10 +1,23 @@
+"""
+This file defines the functions for splitting the dataset
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import argparse
 import os
 import random
 import shutil
 
 
-def split_dataset(data_dir, train_ratio=0.8):
+def split_dataset(data_dir: str, train_ratio: float = 0.8):
+    """Function for splitting the dataset
+
+    Args:
+        data_dir (str): directory containing the training data
+        train_ratio (float, optional): ratio between training and inference split. Defaults to 0.8.
+    """
     image_dir = os.path.join(data_dir, "images")
     annotation_dir = os.path.join(data_dir, "annotations")
 
@@ -67,12 +80,12 @@ def split_dataset(data_dir, train_ratio=0.8):
         if os.path.exists(original_dir_path) and not os.listdir(original_dir_path):
             os.rmdir(original_dir_path)
 
-    print(
-        f"Split completed. {len(train_images)} training samples and {len(test_images)} testing samples."
-    )
+    print(f"Split completed. testing={len(train_images)} training={len(test_images)}")
 
 
 def main():
+    """Main function
+    """
     parser = argparse.ArgumentParser(
         description="Split a dataset into training and testing sets."
     )

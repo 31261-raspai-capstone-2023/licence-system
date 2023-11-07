@@ -1,10 +1,16 @@
+"""
+This file defines the model classes
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import os
 import xml.etree.ElementTree as ET
-from typing import List, Tuple
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 from PIL import Image
 from tqdm import tqdm
@@ -20,24 +26,19 @@ class LPR_Training_Dataset_Processed:
 
         self.img_list = os.listdir(self.IMAGES_FOLDER)
 
-        # self.training_data: List[Tuple[np.ndarray, Tuple[int, int, int, int]]] = []
         self.training_data: list = []
-        # self.testing_data: List[Tuple[np.ndarray, Tuple[int, int, int, int]]] = []
         self.testing_data: list = []
 
-        # self.train_X: List[np.ndarray] = []
         self.train_X: torch.Tensor = None
-        # self.train_Y: List[Tuple[int, int, int, int]] = []
         self.train_Y: torch.Tensor = None
-        # self.test_X: List[np.ndarray] = []
         self.test_X: torch.Tensor = None
-        # self.test_Y: List[Tuple[int, int, int, int]] = []
         self.test_Y: torch.Tensor = None
 
         self.neural_network: nn.Module = None
 
     def create_training_data(self):
-        """_summary_"""
+        """Create training data function
+        """
         testing_size = len(self.img_list) * self.TESTING_IMAGES_SIZE
 
         i = 0
@@ -84,6 +85,11 @@ class LPR_Training_Dataset_Processed:
 
 
 class LPLocalNet(nn.Module):
+    """Neural network model class
+
+    Args:
+        nn (class): inherited base class
+    """
     def __init__(self):
         super(LPLocalNet, self).__init__()
 

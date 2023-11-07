@@ -1,3 +1,10 @@
+"""
+This file defines the logger for use in other files
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import logging
 
 logging.basicConfig(

@@ -1,12 +1,20 @@
+"""
+This file defines all the utility functions for data loading.
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import os
 import shutil
 
-import matplotlib.patches as patches
+from matplotlib import patches
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from licence_system.utils.logger import logger
 from PIL import Image
+from licence_system.utils.model_class import LPR_Training_Dataset_Processed
+from licence_system.utils.logger import logger
 
 
 def separate_images_and_annotations(
@@ -115,7 +123,15 @@ def show_imgs(data: list):
     plt.show()
 
 
-def split_data(training_dataset, test_to_train_percent: float):
+def split_data(
+    training_dataset: LPR_Training_Dataset_Processed, test_to_train_percent: float
+):
+    """Split the training dataset into training and test sets.
+
+    Args:
+        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        test_to_train_percent (float): float percentage of test to train data
+    """
     resized_images = [Image.fromarray(i[0]) for i in training_dataset.training_data]
     numpy_data = np.array([np.array(img.resize((416, 416))) for img in resized_images])
     X = torch.Tensor(numpy_data)
@@ -154,7 +170,7 @@ def split_data(training_dataset, test_to_train_percent: float):
     for i in range(5):
         demo_arr.append(
             [
-                "Image #{}".format(i),
+                f"Image #{i}",
                 Image.fromarray(training_dataset.training_data[i][0]),
                 np.array(training_dataset.training_data[i][1]),
                 [0.2, 0.4, 0.2, 0.4] * np.array(training_dataset.training_data[i][1]),
@@ -165,6 +181,6 @@ def split_data(training_dataset, test_to_train_percent: float):
     for i in range(5):
         orig_img = Image.fromarray(training_dataset.training_data[i][0])
         demo_arr.append(
-            ["Image #{}".format(i), numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]]
+            [f"Image #{i}", numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]]
         )
     show_imgs(demo_arr)

@@ -1,5 +1,12 @@
-"""Pytest for the OCR function"""
+"""
+This file runs pytests against the ocr function
 
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
+
+from typing import Tuple
 import cv2
 import pytest
 from licence_system.utils.ocr import ocr_with_coordinates
@@ -23,7 +30,14 @@ from licence_system.utils.ocr import ocr_with_coordinates
         ("./tests/ocr/6.png", (90, 80, 100, 60), "AA56OH"),
     ],
 )
-def test_ocr_with_coordinates(image_path, coordinates, expected_text):
+def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text: str):
+    """Test OCR against image with coordinates
+
+    Args:
+        image_path (str): Image path
+        coordinates (tuple): coordinate tuple (x, y, width, height)
+        expected_text (str): expected result from OCR
+    """
     # Read the image from the file
     image = cv2.imread(image_path)
 

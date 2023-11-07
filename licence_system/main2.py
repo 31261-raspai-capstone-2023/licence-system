@@ -1,16 +1,18 @@
+"""
+This file defines the runner for inferencing the model
+
+Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
+License: MIT License
+Version: 1.0.0
+"""
 import os
 import random
 import faulthandler
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
+from PIL import Image
 from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.model_class import LPLocalNet
-from PIL import Image
 
 PATH = "licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc78.84.pth"
 IMAGE_PATH = "inference-images"
@@ -19,7 +21,7 @@ faulthandler.enable()
 
 print(f"Loading Model: {PATH}")
 model = LPLocalNet()
-map_location=torch.device('cpu')
+map_location = torch.device("cpu")
 state_dict = torch.load(PATH, map_location=map_location)
 model.load_state_dict(state_dict)
 model.eval()
@@ -53,4 +55,3 @@ with Image.open(selected_img).convert("L") as img:
     print("After conv1:", out1.shape)
     # print(f"Estimate bounding box: {net_out}")
     # show_imgs([[selected_img, img, (0, 0, 0, 0), (0, 0, 0, 0)]])
-
