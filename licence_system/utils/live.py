@@ -30,11 +30,12 @@ if __name__ == "__main__":
     testclass.cam.start_preview(Preview.QTGL, width=800, height=400) # configure the preview window
     testclass.cam.start(show_preview=True) # open the preview window
 
-    while True: # continually take photos every 5 seconds
+    for x in range(0,5): # continually take photos every 5 seconds
         time.sleep(5)
         # cam.switch_mode_and_capture_file(capture_config, f"live_images/{datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.jpg")
         image = testclass.cam.capture_image("main")
 
+    testclass.cam.stop()
     # wrap in a class
     # in init - something actual recording
     # the code that captures the image - separate function
