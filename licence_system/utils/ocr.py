@@ -12,9 +12,87 @@ import numpy as np
 import pytesseract
 import os
 import re
+import json
 
 import cv2
+from io import BytesIO
 import numpy as np
+import requests
+
+
+# Retrieve the TESSERACT_CMD environment variable
+tesseract_cmd = os.getenv("TESSERACT_CMD")
+
+# If the environment variable is not set, raise an exception
+if tesseract_cmd is None:
+    raise EnvironmentError("The TESSERACT_CMD environment variable is not set.")
+
+# Set the tesseract command for pytesseract
+pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+
+# Retrieve the OCR_API_KEY environment variable
+api_key_ocr = os.getenv("OCR_API_KEY")
+
+# If the environment variable is not set, raise an exception
+if api_key_ocr is None:
+    raise EnvironmentError("The OCR_API_KEY environment variable is not set.")
+
+
+def ocr_api(image):
+    # Set the API endpoint
+    url = "https://api.ocr.space/parse/image"
+
+    # Encode the image as a JPEG in memory
+    _, buffer = cv2.imencode(".jpg", image)
+    io_buf = BytesIO(buffer)
+
+    # Prepare the headers for the HTTP request
+    headers = {
+        "apikey": api_key_ocr,
+    }
+
+    # Prepare the payload for the POST request
+    # Note: Depending on the specifics, you may add or omit optional parameters
+    payload = {
+        "isOverlayRequired": True,
+        "language": "eng",
+        "detectOrientation": True,
+        "isCreateSearchablePdf": False,
+        "isSearchablePdfHideTextLayer": False,
+        "scale": True,
+        "isTable": False,
+        "OCREngine": 2,
+    }
+
+    files = {
+        "file": ("image.jpg", io_buf, "image/jpeg"),
+    }
+
+    response = requests.post(url, headers=headers, data=payload, files=files)
+
+    # Check the response
+    if response.status_code != 200:
+        print("Request failed with status code: ", response.status_code)
+
+    # Extract the plate results
+    api_result = json.loads(response.text)
+    parsed_text = (
+        api_result["ParsedResults"][0]["ParsedText"]
+        if api_result["ParsedResults"]
+        else None
+    )
+
+    if parsed_text:
+        # Clean up the text
+        parsed_text = re.sub(r"[^a-zA-Z0-9\n]", "", parsed_text)
+
+        for item in re.split(r"\s", parsed_text):
+            if len(item) == 6:
+                parsed_text = item
+                break
+
+        parsed_text = "".join(e for e in parsed_text if e.isalnum())
+    return parsed_text
 
 
 def deskew_image(image):
@@ -39,17 +117,6 @@ def deskew_image(image):
 
     # Return the original if no skew was detected
     return image
-
-
-# Retrieve the TESSERACT_CMD environment variable
-tesseract_cmd = os.getenv("TESSERACT_CMD")
-
-# If the environment variable is not set, raise an exception
-if tesseract_cmd is None:
-    raise EnvironmentError("The TESSERACT_CMD environment variable is not set.")
-
-# Set the tesseract command for pytesseract
-pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
 def ensure_grayscale(image):
@@ -289,8 +356,11 @@ def ocr_image(image: np.ndarray, coordinates: Tuple = None) -> str:
         cropped_image = image
 
     # Preprocess the image
-    preprocessed_image = preprocess_image(cropped_image)
+    # preprocessed_image = preprocess_image(cropped_image)
 
     # Extract text
-    license_plate_text = extract_license_plate_text(preprocessed_image)
+    # license_plate_text = extract_license_plate_text(preprocessed_image)
+
+    # Extract text from API
+    license_plate_text = ocr_api(cropped_image)
     return license_plate_text
