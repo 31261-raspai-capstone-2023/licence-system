@@ -38,11 +38,14 @@ if __name__ == "__main__":
 
         # Run indefinitely until a keyboard interrupt (Ctrl+C) or other exception occurs
         while True:
+            
+            image_preproc = imgproc.process_image_to_tensor(camera_class.capture_pil()).numpy()
+
             image = inference_class.get_bounding_box_from_img(
-                camera_class.capture_pil()
+                image_preproc
             )
 
-            image = imgproc.process_image_to_tensor(image).numpy()
+            image = np.asarray(image)
 
             # Run OCR
             licence_plate = ocr_image(image)
