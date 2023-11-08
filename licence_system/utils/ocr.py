@@ -14,11 +14,65 @@ import os
 
 import imutils
 
+
+def increase_contrast(image):
+    # Convert to YUV
+    image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+
+    # Apply histogram equalization
+    image_yuv[:, :, 0] = cv2.equalizeHist(image_yuv[:, :, 0])
+
+    # Convert back to BGR
+    output = cv2.cvtColor(image_yuv, cv2.COLOR_YUV2BGR)
+
+    return output
+
+
+def binarize_image(image):
+    # Convert to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply adaptive thresholding
+    binary_image = cv2.adaptiveThreshold(
+        gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+    )
+
+    return binary_image
+
+
+def remove_noise(image):
+    # Convert to grayscale
+    gray_image = image
+
+    # Apply non-local means denoising
+    denoised_image = cv2.fastNlMeansDenoising(gray_image, None, 30, 7, 21)
+
+    return denoised_image
+
+
+def deskew_image(image):
+    gray = image
+    # Use thresholding to get a binary image
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # Calculate the moments to find the centroid
+    moments = cv2.moments(binary)
+    # Calculate the skew based on the moments
+    if moments["mu02"] != 0:
+        skew = moments["mu11"] / moments["mu02"]
+        M = np.float32([[1, skew, -0.5 * gray.shape[0] * skew], [0, 1, 0]])
+        # Warp the image to correct the skew
+        img = cv2.warpAffine(
+            binary,
+            M,
+            (gray.shape[1], gray.shape[0]),
+            flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR,
+        )
+        return img
+    return image  # Return the original if no skew was detected
+
+
 # Retrieve the TESSERACT_CMD environment variable
 tesseract_cmd = os.getenv("TESSERACT_CMD")
-# tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-# tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-# tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # If the environment variable is not set, raise an exception
 if tesseract_cmd is None:
@@ -28,70 +82,47 @@ if tesseract_cmd is None:
 pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
-# def deskew_image(image):
-#     # Convert the image to grayscale and then apply edge detection
-#     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-#     edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-
-#     # Use Hough transform to detect lines in the image
-#     lines = cv2.HoughLines(edges, 1, np.pi / 180, 100)
-
-#     # Calculate the average angle of the lines
-#     angles = []
-#     for rho, theta in lines[:, 0]:
-#         angles.append(theta)
-
-#     # Compute the angle of rotation needed to deskew the image
-#     average_angle = np.mean(angles)
-#     angle_degrees = (average_angle * 180 / np.pi) - 90
-#     angle_degrees = -angle_degrees if angle_degrees < 0 else 180 - angle_degrees
-
-#     # Rotate the image around its center
-#     (h, w) = image.shape[:2]
-#     center = (w // 2, h // 2)
-#     M = cv2.getRotationMatrix2D(center, angle_degrees, 1.0)
-#     rotated = cv2.warpAffine(
-#         image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE
-#     )
-
-#     return rotated
-
-
 def preprocess_image(image):
-    # Convert the image to grayscale
     # deskewed_image = deskew_image(image)
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # # Convert the image to grayscale
+    # binary_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # # Use GaussianBlur to reduce noise and improve OCR accuracy
-    # blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
+    binary_image = increase_contrast(image)
 
-    # # Apply Non-local Means Denoising
-    # blurred_image = cv2.fastNlMeansDenoising(gray_image, None, 5, 7, 21)
-
-    # Instead of GaussianBlur, let's use a median blur which preserves edges better
-    blurred_image = cv2.medianBlur(gray_image, 3)
-
-    # Adaptive thresholding - this considers small regions of the image to adaptively
-    # change the threshold and might work better with varying lighting conditions
-    binary_image = cv2.adaptiveThreshold(
-        blurred_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
     # Resize for better accuracy
     width = int(binary_image.shape[1] * 2)
     height = int(binary_image.shape[0] * 2)
     dimensions = (width, height)
 
     binary_image = cv2.resize(binary_image, dimensions, interpolation=cv2.INTER_CUBIC)
+    binary_image = binarize_image(binary_image)
+    binary_image = remove_noise(binary_image)
+    binary_image = deskew_image(binary_image)
 
-    # # Thresholding to get a binary image
-    # _, binary_image = cv2.threshold(
-    #     blurred_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    # )
+    # # # Use GaussianBlur to reduce noise and improve OCR accuracy
+    # # blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
 
-    # You can experiment with dilation and erosion to close gaps between letters
-    kernel = np.ones((1, 1), np.uint8)
-    binary_image = cv2.dilate(binary_image, kernel, iterations=1)
-    binary_image = cv2.erode(binary_image, kernel, iterations=10)
+    # # # Apply Non-local Means Denoising
+    # # blurred_image = cv2.fastNlMeansDenoising(gray_image, None, 5, 7, 21)
+
+    # Instead of GaussianBlur, let's use a median blur which preserves edges better
+    blurred_image = cv2.medianBlur(binary_image, 3)
+
+    # Adaptive thresholding - this considers small regions of the image to adaptively
+    # change the threshold and might work better with varying lighting conditions
+    binary_image = cv2.adaptiveThreshold(
+        blurred_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+    )
+
+    # # # Thresholding to get a binary image
+    # # _, binary_image = cv2.threshold(
+    # #     blurred_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    # # )
+
+    # # You can experiment with dilation and erosion to close gaps between letters
+    # kernel = np.ones((1, 1), np.uint8)
+    # binary_image = cv2.dilate(binary_image, kernel, iterations=1)
+    # binary_image = cv2.erode(binary_image, kernel, iterations=10)
 
     cv2.imshow("Image", binary_image)
     cv2.waitKey(0)
