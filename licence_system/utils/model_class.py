@@ -125,9 +125,42 @@ class LPR_Inference:
         # imgcp_draw = ImageDraw.Draw(imgcp)
         # imgcp_draw.rectangle([x1,y1,x2,y2], fill = None, outline = "white", width=7)
 
-    def get_bounding_box_from_img(self, image):
 
-        is_tensor = False
+    def get_img_from_tensor(self, pred: torch.Tensor):
+        pred = pred.data.cpu().numpy()
+        pred = pred[0].transpose((1, 2, 0)) * 255.0
+        
+        pred = pred.astype(np.uint8)
+        return Image.fromarray(pred)
+
+
+    def get_bb_from_tensor(self, tensor):
+        X = tensor.detach().clone()
+        # Pass image into model
+        print("Passing image into model...")
+        model_in = X.view(-1, 1, 416, 416)
+        # print(model_in)
+        net_out = self.MODEL(model_in).detach().cpu()[0]
+        print("Input Shape:", model_in.shape)
+        print(f"Estimate bounding box: {net_out}")
+
+        # Resize the bounding box to orginal dimensions
+        image_copy = self.get_img_from_tensor(tensor)
+        bounding_box_coordinates = self.__resize_bounding_box_from_image(
+            image_copy, net_out
+        )
+
+        # Crop the original image to the bounding box
+        cropped_img = image_copy.crop(bounding_box_coordinates)
+
+        if self.DISPLAY_OUTPUT is True:
+            print("Displaying Output")
+            cropped_img.show()
+            # cropped output to get fed into OCR code
+
+        return cropped_img
+
+    def get_bounding_box_from_img(self, image):
 
         if isinstance(image, str):
             # Open the image as a grayscale image
@@ -138,26 +171,21 @@ class LPR_Inference:
                 img = image.convert("L")
             else:
                 img = image
-        elif isinstance(image, torch.Tensor):
-            is_tensor = True
-            img = image
         else:
             raise ValueError(
                 "The provided image input is neither a file path nor an Image object."
             )
 
         with img:
-            if is_tensor:
-                X = image
-            else:
-                # Resize the image to put it into the model
-                resized_img = img.copy().resize((416, 416))
-                numpy_data = np.array(resized_img)
-                # print(numpy_data)
 
-                # Preprocess the image
-                print("Preprocessing image...")
-                X = self.__image_preprocessing(numpy_data)
+            # Resize the image to put it into the model
+            resized_img = img.copy().resize((416, 416))
+            numpy_data = np.array(resized_img)
+            # print(numpy_data)
+
+            # Preprocess the image
+            print("Preprocessing image...")
+            X = self.__image_preprocessing(numpy_data)
 
             # Pass image into model
             print("Passing image into model...")

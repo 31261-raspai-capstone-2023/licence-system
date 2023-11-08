@@ -41,7 +41,7 @@ if __name__ == "__main__":
             
             image_preproc = imgproc.process_image_to_tensor(camera_class.capture_pil())
 
-            image = inference_class.get_bounding_box_from_img(
+            image = inference_class.get_bb_from_tensor(
                 image_preproc
             )
 
