@@ -202,6 +202,10 @@ def preprocess_image(image):
         if not (min_aspect_ratio < aspect_ratio < max_aspect_ratio):
             break
 
+        # Check if the image is to small to be reagit pu
+        if h < 30 or w < 60:
+            break
+
         cropped_image = new_image[y : y + h, x : x + w]
         # cv2.imshow("Image", cropped_image)
         # cv2.waitKey(0)

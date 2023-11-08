@@ -25,12 +25,14 @@ from licence_system.utils.ocr import ocr_image
         ("./tests/ocr/1.jpg", (30, 100, 252, 97), "600063"),
         ("./tests/ocr/1.jpg", (35, 190, 252, 97), "NOA770"),
         ("./tests/ocr/1.jpg", (35, 190, 252, 97), "NOA710"),
-        ("./tests/ocr/7.png", (1, 1, 293, 197), "KLA674"),
-        ("./tests/ocr/8.png", (1, 1, 293, 197), "AA56QH"),
-        ("./tests/ocr/9.png", (1, 1, 293, 197), "CI59VP"),
-        ("./tests/ocr/9.png", (1, 1, 293, 197), "C159VP"),
-        ("./tests/ocr/11.png", (1, 1, 293, 197), "OZY450"),
-        ("./tests/ocr/10.png", (1, 1, 639, 476), "OZY450"),
+        ("./tests/ocr/7.png", None, "KLA674"),
+        ("./tests/ocr/8.png", None, "AA56QH"),
+        ("./tests/ocr/9.png", None, "CI59VP"),
+        ("./tests/ocr/9.png", None, "C159VP"),
+        ("./tests/ocr/11.png", None, "OZY450"),
+        ("./tests/ocr/10.png", None, "OZY450"),
+        ("./tests/ocr/20.png", None, "AA56QH"),
+        ("./tests/ocr/21.png", None, "AA56QH"),
     ],
 )
 def test_ocr_image(image_path: str, coordinates: Tuple, expected_text: str):
@@ -48,7 +50,10 @@ def test_ocr_image(image_path: str, coordinates: Tuple, expected_text: str):
     # cv2.waitKey(0)
 
     # Call ocr function
-    extracted_text = ocr_image(image, coordinates)
+    if coordinates is None:
+        extracted_text = ocr_image(image)
+    else:
+        extracted_text = ocr_image(image, coordinates)
     print(extracted_text)
 
     # Assert
