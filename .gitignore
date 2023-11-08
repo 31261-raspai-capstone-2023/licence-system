@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
 
+tests/forward-connected-nn-test/localTestingData/
+tests/forward-connected-nn-test/localTrainingData/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
