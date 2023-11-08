@@ -12,10 +12,12 @@ import numpy as np
 import pytesseract
 import os
 
-# import imutils
+import imutils
 
 # Retrieve the TESSERACT_CMD environment variable
-tesseract_cmd = os.getenv('TESSERACT_CMD')
+# tesseract_cmd = os.getenv('TESSERACT_CMD')
+# tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # If the environment variable is not set, raise an exception
 if tesseract_cmd is None:
@@ -159,7 +161,8 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
     cropped_image = image[y : y + height, x : x + width]
     cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 
-    cropped_image = cv2.convertScaleAbs(cropped_image, alpha=0.5, beta=30)
+    # cropped_image = cv2.convertScaleAbs(cropped_image, alpha=0.5, beta=30)
+    cropped_image = cv2.convertScaleAbs(cropped_image, alpha=1.2, beta=30)
     # cropped_image = cv2.convertScaleAbs(cropped_image, alpha=2.0, beta=30)
 
     # https://yashlahoti.medium.com/number-plate-recognition-in-python-using-tesseract-ocr-cc15853aca36
@@ -168,14 +171,14 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
     # https://stackoverflow.com/questions/55349307/how-to-tune-tesseract-for-identifying-number-plate-of-a-car-more-accurately
     # https://stackoverflow.com/questions/72381645/python-tesseract-license-plate-recognition
     # https://www.google.com/search?q=teseract+ocr+on+blurry+licence+plate+image
-    # cropped_image = cv2.bilateralFilter(cropped_image, 100, 5, 5)
-    # cropped_image = cv2.Canny(cropped_image, 10, 5)
+    cropped_image = cv2.bilateralFilter(cropped_image, 100, 5, 5)
+    # cropped_image = cv2.Canny(cropped_image, 10, 5) # no
     # contours = cv2.findContours(cropped_image.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # contours = imutils.grab_contours(contours)
     # contours = sorted(contours, key = cv2.contourArea, reverse = True)[:10]
 
     # # Sharpening
-    # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    # kernel = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
     # cropped_image = cv2.filter2D(cropped_image, -1, kernel)
 
     # # Convert to greyscale
@@ -187,9 +190,9 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
 
     # # Resize for better accuracy
 
-    # binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(cropped_image)
-    # binary = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8, 8)).apply(cropped_image)
-    # binary = cv2.resize(binary, None, fx=10, fy=10, interpolation=cv2.INTER_LINEAR)
+    binary = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(cropped_image)
+    binary = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(8, 8)).apply(cropped_image)
+    binary = cv2.resize(binary, None, fx=10, fy=10, interpolation=cv2.INTER_LINEAR)
 
     # cv2.imshow("Image", binary)
     cv2.imshow("Image", cropped_image)

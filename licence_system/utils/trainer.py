@@ -18,6 +18,7 @@ from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.logger import logger
 from licence_system.utils.model_class import LPLocalNet, LPR_Training_Dataset_Processed
 from licence_system.config import ACCEPTABLE_DISTANCE
+from jupyterplot import ProgressPlot
 
 
 def train(training_dataset: LPR_Training_Dataset_Processed) -> int:

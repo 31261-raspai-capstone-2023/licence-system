@@ -17,17 +17,16 @@ from licence_system.utils.ocr import ocr_with_coordinates
     "image_path, coordinates, expected_text",
     # (path_to_img, (x, y, width, height), expected_text)
     [
-        # ("./tests/ocr/1.jpg", (30, 10, 252, 97), "SEB384"),
-        # ("./tests/ocr/1.jpg", (30, 100, 252, 97), "600063"),
-        # ("./tests/ocr/1.jpg", (35, 190, 252, 97), "NOA770"),
-        # # ("./tests/ocr/1.jpg", (30, 190, 252, 97), "NOA770"),
-        # ("./tests/ocr/2.jpg", (165, 295, 57, 35), "BE33TA"),
-        # ("./tests/ocr/3.jpg", (418, 516, 105, 50), "CNK06N"),
-        # # ("./tests/ocr/3.jpg", (195, 235, 56, 28), "CNK06N"),
-        # ("./tests/ocr/4.jpg", (340, 280, 57, 50), "BF14QG"),
-        # ("./tests/ocr/5.jpg", (97, 305, 45, 28), "719SDR"),
-        ("./tests/ocr/6.png", (1, 1, 3000, 3000), "AA56OH"),
-        ("./tests/ocr/6.png", (90, 80, 100, 60), "AA56OH"),
+        ("./tests/ocr/1.jpg", (30, 10, 252, 97), "SEB384"),
+        ("./tests/ocr/1.jpg", (30, 100, 252, 97), "600063"),
+        ("./tests/ocr/1.jpg", (35, 190, 252, 97), "NOA770"),
+        ("./tests/ocr/2.jpg", (165, 295, 57, 35), "BE33TA"),
+        ("./tests/ocr/3.jpg", (418, 516, 105, 50), "CNK06N"),
+        # ("./tests/ocr/3.jpg", (195, 235, 56, 28), "CNK06N"),
+        ("./tests/ocr/4.jpg", (340, 280, 57, 50), "BF14QG"),
+        ("./tests/ocr/5.jpg", (97, 305, 45, 28), "719SDR"),
+        # ("./tests/ocr/6.png", (1, 1, 3000, 3000), "AA56QH"),
+        ("./tests/ocr/6.png", (90, 80, 100, 60), "AA56QH"),
     ],
 )
 def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text: str):
