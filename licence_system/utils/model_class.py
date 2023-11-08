@@ -140,6 +140,7 @@ class LPR_Inference:
                 img = image
         elif isinstance(image, torch.Tensor):
             is_tensor = True
+            img = image
         else:
             raise ValueError(
                 "The provided image input is neither a file path nor an Image object."
