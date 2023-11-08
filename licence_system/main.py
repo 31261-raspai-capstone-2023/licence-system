@@ -26,7 +26,6 @@ faulthandler.enable()
 inference_class = LPR_Inference(
     model_path="licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.22.pth",
     display_output=True,
-    bbox_buffer=60,
 )
 
 if __name__ == "__main__":
@@ -48,7 +47,7 @@ if __name__ == "__main__":
 
             # # Log plate to front end
             # send_license_plate(licence_plate, CAMERA_ID)
-            
+
             time.sleep(0.1)  # Add a short delay to not overwork the CPU
 
     except KeyboardInterrupt:
