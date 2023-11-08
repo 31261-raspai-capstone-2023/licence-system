@@ -187,18 +187,23 @@ def preprocess_image(image):
     coordinates = get_coords_largest_rectangle(binary_image)
     x, y, w, h = coordinates
     cropped_image = binary_image[y : y + h, x : x + w]
-    cv2.imshow("Image", cropped_image)
-    cv2.waitKey(0)
 
     while True:
-        new_image = scale_image(cropped_image, 15)
+        new_image = scale_image(cropped_image, 10)
         cv2.imshow("Image", new_image)
         cv2.waitKey(0)
         coordinates = get_coords_largest_rectangle(new_image)
         x, y, w, h = coordinates
 
-        if abs(w - h) < 20:
+        
+        aspect_ratio = float(w) / h
+        min_aspect_ratio = 2
+        max_aspect_ratio = 6
+
+        # Check if aspect ratio is within expected range
+        if not (min_aspect_ratio < aspect_ratio < max_aspect_ratio):
             break
+
 
         cropped_image = new_image[y : y + h, x : x + w]
         cv2.imshow("Image", cropped_image)

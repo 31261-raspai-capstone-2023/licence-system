@@ -29,7 +29,9 @@ from licence_system.utils.ocr import ocr_with_coordinates
         # ("./tests/ocr/6.png", (90, 80, 100, 60), "AA56QH"),
         # ("./tests/ocr/7.png", (1, 1, 293, 197), "KLA674"),
         # ("./tests/ocr/8.png", (1, 1, 293, 197), "AA56QH"),
-        ("./tests/ocr/9.png", (1, 1, 293, 197), "CI59VP"),
+        # ("./tests/ocr/9.png", (1, 1, 293, 197), "CI59VP"),
+        # ("./tests/ocr/10.png", (1, 1, 639, 476), "0ZY450"),
+        ("./tests/ocr/11.png", (1, 1, 293, 197), "OZY450"),
     ],
 )
 def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text: str):
