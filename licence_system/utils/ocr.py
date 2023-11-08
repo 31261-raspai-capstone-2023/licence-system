@@ -182,20 +182,19 @@ def preprocess_image(image):
     # binary_image = cv2.dilate(binary_image, kernel, iterations=1)
     # binary_image = cv2.erode(binary_image, kernel, iterations=10)
 
-    cv2.imshow("Image", binary_image)
-    cv2.waitKey(0)
+    # cv2.imshow("Image", binary_image)
+    # cv2.waitKey(0)
     coordinates = get_coords_largest_rectangle(binary_image)
     x, y, w, h = coordinates
     cropped_image = binary_image[y : y + h, x : x + w]
 
     while True:
         new_image = scale_image(cropped_image, 10)
-        cv2.imshow("Image", new_image)
-        cv2.waitKey(0)
+        # cv2.imshow("Image", new_image)
+        # cv2.waitKey(0)
         coordinates = get_coords_largest_rectangle(new_image)
         x, y, w, h = coordinates
 
-        
         aspect_ratio = float(w) / h
         min_aspect_ratio = 2
         max_aspect_ratio = 6
@@ -204,10 +203,9 @@ def preprocess_image(image):
         if not (min_aspect_ratio < aspect_ratio < max_aspect_ratio):
             break
 
-
         cropped_image = new_image[y : y + h, x : x + w]
-        cv2.imshow("Image", cropped_image)
-        cv2.waitKey(0)
+        # cv2.imshow("Image", cropped_image)
+        # cv2.waitKey(0)
 
     cv2.imshow("STOPPED", cropped_image)
     cv2.waitKey(0)
@@ -239,26 +237,28 @@ def preprocess_image(image):
 
 
 def extract_license_plate_text(preprocessed_image):
-    # # Use Tesseract to do OCR on the preprocessed image
-    # custom_config = r"--oem 3 --psm 8"  # You might need to adjust the psm value based on your images
-    # text = pytesseract.image_to_string(preprocessed_image, config=custom_config)
+    # Use Tesseract to do OCR on the preprocessed image
+    custom_config = r"--oem 3 --psm 11"  # You might need to adjust the psm value based on your images
+    text = pytesseract.image_to_string(preprocessed_image, config=custom_config)
 
-    # # Clean up the text
-    # text = "".join(e for e in text if e.isalnum())
-    texts = []
-    for i in range(0, 13):
-        try:
-            custom_config = f"--oem 3 --psm {i} -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # You might need to adjust the psm value based on your images
-            text = pytesseract.image_to_string(
-                preprocessed_image,
-                config=custom_config,
-                lang="eng",
-            )
-            texts.append(f"{i}: {text}")
-        except:
-            pass
+    # Clean up the text
+    text = "".join(e for e in text if e.isalnum())
 
-    return texts
+    return text
+    # texts = []
+    # for i in range(0, 13):
+    #     try:
+    #         custom_config = f"--oem 3 --psm {i} -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # You might need to adjust the psm value based on your images
+    #         text = pytesseract.image_to_string(
+    #             preprocessed_image,
+    #             config=custom_config,
+    #             lang="eng",
+    #         )
+    #         texts.append(f"{i}: {text}")
+    #     except:
+    #         pass
+
+    # return texts
 
 
 def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
