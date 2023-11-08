@@ -3,6 +3,7 @@
 
 tests/forward-connected-nn-test/localTestingData/
 tests/forward-connected-nn-test/localTrainingData/
+.python-version
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
