@@ -10,6 +10,7 @@ import time
 import numpy as np
 import os
 from licence_system.utils.model_class import LPR_Inference
+from licence_system.utils.imgproc import ImgProcSuite
 from licence_system.utils.live import CameraCapture
 from licence_system.utils.ocr import ocr_image
 from licence_system.utils.log_plate import send_license_plate
@@ -24,12 +25,13 @@ faulthandler.enable()
 #     raise EnvironmentError("The TESSERACT_CMD environment variable is not set.")
 
 inference_class = LPR_Inference(
-    model_path="licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.22.pth",
+    model_path="licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.80.pth",
     display_output=True,
 )
 
 if __name__ == "__main__":
     camera_class = CameraCapture()
+    imgproc = ImgProcSuite()
 
     try:
         camera_class.cam.start()  # open the preview window
@@ -39,7 +41,8 @@ if __name__ == "__main__":
             image = inference_class.get_bounding_box_from_img(
                 camera_class.capture_pil()
             )
-            image = np.asarray(image)
+
+            image = imgproc.process_image_to_tensor(image).numpy()
 
             # Run OCR
             licence_plate = ocr_image(image)
