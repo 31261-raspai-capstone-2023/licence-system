@@ -39,7 +39,7 @@ if __name__ == "__main__":
         # Run indefinitely until a keyboard interrupt (Ctrl+C) or other exception occurs
         while True:
             
-            image_preproc = imgproc.process_image_to_tensor(camera_class.capture_pil()).numpy()
+            image_preproc = imgproc.process_image_to_tensor(camera_class.capture_pil())
 
             image = inference_class.get_bounding_box_from_img(
                 image_preproc
