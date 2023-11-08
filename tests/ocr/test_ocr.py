@@ -28,7 +28,8 @@ from licence_system.utils.ocr import ocr_with_coordinates
         # # ("./tests/ocr/6.png", (1, 1, 3000, 3000), "AA56QH"),
         # ("./tests/ocr/6.png", (90, 80, 100, 60), "AA56QH"),
         # ("./tests/ocr/7.png", (1, 1, 293, 197), "KLA674"),
-        ("./tests/ocr/8.png", (1, 1, 293, 197), "AA56QH"),
+        # ("./tests/ocr/8.png", (1, 1, 293, 197), "AA56QH"),
+        ("./tests/ocr/9.png", (1, 1, 293, 197), "CI59VP"),
     ],
 )
 def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text: str):

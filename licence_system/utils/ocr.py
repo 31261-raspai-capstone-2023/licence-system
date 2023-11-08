@@ -14,8 +14,37 @@ import os
 
 import imutils
 
+import cv2
+import numpy as np
 
-def find_and_crop_square(image):
+
+def scale_image(image, padding=50):
+    """
+    Reduces the size of the image by a padding amount and then finds the largest rectangle.
+    """
+    # Read the image
+    original_height, original_width = image.shape[:2]
+
+    # Calculate new image dimensions
+    new_width = original_width - 2 * padding
+    new_height = original_height - 2 * padding
+
+    # Ensure new dimensions are positive
+    new_width = max(1, new_width)
+    new_height = max(1, new_height)
+
+    # Define the new image area (with padding applied)
+    new_area = (padding, padding, new_width, new_height)
+
+    # Crop the image to the new area
+    cropped_image = image[
+        new_area[1] : new_area[1] + new_area[3], new_area[0] : new_area[0] + new_area[2]
+    ]
+
+    return cropped_image
+
+
+def get_coords_largest_rectangle(image):
     # Set a threshold to identify black (or very dark) regions in the image
     _, thresh = cv2.threshold(image, 15, 255, cv2.THRESH_BINARY_INV)
 
@@ -39,11 +68,7 @@ def find_and_crop_square(image):
     if largest_rectangle is not None:
         x, y, w, h = largest_rectangle
 
-        # Crop the image according to the found rectangle
-        cropped_image = image[y : y + h, x : x + w]
-
-        # Save or return the cropped image
-        return cropped_image
+        return largest_rectangle
     else:
         raise Exception("S")
 
@@ -159,10 +184,28 @@ def preprocess_image(image):
 
     cv2.imshow("Image", binary_image)
     cv2.waitKey(0)
-    cropped_image = find_and_crop_square(binary_image)
+    coordinates = get_coords_largest_rectangle(binary_image)
+    x, y, w, h = coordinates
+    cropped_image = binary_image[y : y + h, x : x + w]
     cv2.imshow("Image", cropped_image)
     cv2.waitKey(0)
 
+    while True:
+        new_image = scale_image(cropped_image, 15)
+        cv2.imshow("Image", new_image)
+        cv2.waitKey(0)
+        coordinates = get_coords_largest_rectangle(new_image)
+        x, y, w, h = coordinates
+
+        if abs(w - h) < 20:
+            break
+
+        cropped_image = new_image[y : y + h, x : x + w]
+        cv2.imshow("Image", cropped_image)
+        cv2.waitKey(0)
+
+    cv2.imshow("STOPPED", cropped_image)
+    cv2.waitKey(0)
     return cropped_image
 
     # # Convert the image to grayscale
@@ -206,7 +249,7 @@ def extract_license_plate_text(preprocessed_image):
                 config=custom_config,
                 lang="eng",
             )
-            texts.append(text)
+            texts.append(f"{i}: {text}")
         except:
             pass
 
