@@ -84,8 +84,7 @@ def split_dataset(data_dir: str, train_ratio: float = 0.8):
 
 
 def main():
-    """Main function
-    """
+    """Main function"""
     parser = argparse.ArgumentParser(
         description="Split a dataset into training and testing sets."
     )

@@ -180,7 +180,5 @@ def split_data(
     demo_arr = []
     for i in range(5):
         orig_img = Image.fromarray(training_dataset.training_data[i][0])
-        demo_arr.append(
-            [f"Image #{i}", numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]]
-        )
+        demo_arr.append([f"Image #{i}", numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]])
     show_imgs(demo_arr)

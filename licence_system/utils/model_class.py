@@ -14,6 +14,7 @@ from torch import nn
 import torch.nn.functional as F
 from PIL import Image
 from tqdm import tqdm
+from typing import Tuple
 
 
 class LPR_Training_Dataset_Processed:
@@ -37,8 +38,7 @@ class LPR_Training_Dataset_Processed:
         self.neural_network: nn.Module = None
 
     def create_training_data(self):
-        """Create training data function
-        """
+        """Create training data function"""
         testing_size = len(self.img_list) * self.TESTING_IMAGES_SIZE
 
         i = 0
@@ -84,12 +84,86 @@ class LPR_Training_Dataset_Processed:
         print(f"Testing Images: {len(self.testing_data)}")
 
 
+class LPR_Inference:
+    def __init__(
+        self, model_path: str, display_output: bool = False, bbox_buffer: int = 60
+    ):
+        self.PATH = model_path
+        self.MODEL = LPLocalNet()
+        self.DISPLAY_OUTPUT = display_output
+        self.BBOX_BUFFER = bbox_buffer
+        
+        self.__load()
+
+    def __load(self):
+        print(f"Loading Model: {self.PATH}")
+        self.state_dict = torch.load(self.PATH, map_location="cpu")
+        self.model.load_state_dict(self.state_dict)
+        self.model.eval()
+        print("Successfully loaded model!")
+        
+    def __image_preprocessing(self, image):
+        X = torch.Tensor(image)
+        X = X / 255.0
+        return X
+    
+    def __resize_bounding_box_from_image(self, image, bbox) -> Tuple[int, int, int, int]:
+        (original_width, original_height) = image.size
+        
+        scaling_factor_width = original_width / 416
+        scaling_factor_height = original_height / 416
+
+        x1 = bbox[0].item() * scaling_factor_width - self.BBOX_BUFFER
+        y1 = bbox[1].item() * scaling_factor_height - self.BBOX_BUFFER
+        x2 = bbox[2].item() * scaling_factor_width + self.BBOX_BUFFER
+        y2 = bbox[3].item() * scaling_factor_height + self.BBOX_BUFFER
+
+        return (x1, y1, x2, y2)
+        # draw bounding box onto img
+        # imgcp_draw = ImageDraw.Draw(imgcp)
+        # imgcp_draw.rectangle([x1,y1,x2,y2], fill = None, outline = "white", width=7)
+        
+    def get_bounding_box_from_img(self, image):
+        with Image.open(image).convert("L") as img:
+            # Resize the image to put it into the model
+            resized_img = img.copy().resize((416, 416))
+            numpy_data = np.array(resized_img)
+            # print(numpy_data)
+            
+            # Preprocess the image
+            print("Preprocessing image...")
+            X = self.__image_preprocessing(numpy_data)
+            
+            # Pass image into model
+            print("Passing image into model...")
+            model_in = X.view(-1, 1, 416, 416)
+            # print(model_in)
+            net_out = self.model(model_in).detach().cpu()[0]
+            print("Input Shape:", model_in.shape)
+            print(f"Estimate bounding box: {net_out}")
+
+            # Resize the bounding box to orginal dimensions
+            image_copy = img.copy()
+            bounding_box_coordinates = self.__resize_bounding_box_from_image(image_copy, net_out):
+
+            # Crop the original image to the bounding box
+            cropped_img = image_copy.crop(bounding_box_coordinates)
+
+            if self.DISPLAY_OUTPUT is True:
+                print("Displaying Output")
+                cropped_img.show()
+                # cropped output to get fed into OCR code
+
+            return cropped_img
+
+
 class LPLocalNet(nn.Module):
     """Neural network model class
 
     Args:
         nn (class): inherited base class
     """
+
     def __init__(self):
         super(LPLocalNet, self).__init__()
 
