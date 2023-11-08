@@ -86,7 +86,7 @@ class LPR_Training_Dataset_Processed:
 
 class LPR_Inference:
     def __init__(
-        self, model_path: str, display_output: bool = False, bbox_buffer: int = 60
+        self, model_path: str, display_output: bool = False, bbox_buffer: int = 15
     ):
         self.PATH = model_path
         self.MODEL = LPLocalNet()
@@ -115,10 +115,10 @@ class LPR_Inference:
         scaling_factor_width = original_width / 416
         scaling_factor_height = original_height / 416
 
-        x1 = bbox[0].item() * scaling_factor_width - self.BBOX_BUFFER
-        y1 = bbox[1].item() * scaling_factor_height - self.BBOX_BUFFER
-        x2 = bbox[2].item() * scaling_factor_width + self.BBOX_BUFFER
-        y2 = bbox[3].item() * scaling_factor_height + self.BBOX_BUFFER
+        x1 = (bbox[0].item() - self.BBOX_BUFFER) * scaling_factor_width
+        y1 = (bbox[1].item() - self.BBOX_BUFFER) * scaling_factor_height
+        x2 = (bbox[2].item() + self.BBOX_BUFFER) * scaling_factor_width
+        y2 = (bbox[3].item() + self.BBOX_BUFFER) * scaling_factor_height
 
         return (x1, y1, x2, y2)
         # draw bounding box onto img
