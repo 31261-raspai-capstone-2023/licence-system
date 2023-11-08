@@ -126,6 +126,9 @@ class LPR_Inference:
         # imgcp_draw.rectangle([x1,y1,x2,y2], fill = None, outline = "white", width=7)
 
     def get_bounding_box_from_img(self, image):
+
+        is_tensor = False
+
         if isinstance(image, str):
             # Open the image as a grayscale image
             img = Image.open(image).convert("L")
@@ -135,20 +138,25 @@ class LPR_Inference:
                 img = image.convert("L")
             else:
                 img = image
+        elif isinstance(image, torch.Tensor):
+            is_tensor = True
         else:
             raise ValueError(
                 "The provided image input is neither a file path nor an Image object."
             )
 
         with img:
-            # Resize the image to put it into the model
-            resized_img = img.copy().resize((416, 416))
-            numpy_data = np.array(resized_img)
-            # print(numpy_data)
+            if is_tensor:
+                X = image
+            else:
+                # Resize the image to put it into the model
+                resized_img = img.copy().resize((416, 416))
+                numpy_data = np.array(resized_img)
+                # print(numpy_data)
 
-            # Preprocess the image
-            print("Preprocessing image...")
-            X = self.__image_preprocessing(numpy_data)
+                # Preprocess the image
+                print("Preprocessing image...")
+                X = self.__image_preprocessing(numpy_data)
 
             # Pass image into model
             print("Passing image into model...")
