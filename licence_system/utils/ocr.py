@@ -52,6 +52,15 @@ if tesseract_cmd is None:
 pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
 
+def ensure_grayscale(image):
+    if len(image.shape) == 2 or image.shape[2] == 1:
+        # Image is already in grayscale, so no conversion is necessary
+        return image
+    else:
+        # Convert the image to grayscale
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
 def resize_image(image, padding=50) -> np.ndarray:
     """
     Reduces the size of the image by a padding amount and then finds the largest rectangle.
@@ -145,7 +154,7 @@ def increase_contrast(image):
 
 def preprocess_image(image):
     # Convert the image to grayscale
-    binary_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    binary_image = ensure_grayscale(image)
 
     # Apply Non-local Means Denoising
     blurred_image = cv2.fastNlMeansDenoising(binary_image, None, 5, 7, 21)
@@ -256,7 +265,7 @@ def extract_license_plate_text_all_ocr_modes(preprocessed_image) -> str:
     return texts
 
 
-def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
+def ocr_image(image: np.ndarray, coordinates: Tuple = None) -> str:
     """Get the string from coordinates in an image
 
     Args:
@@ -266,11 +275,14 @@ def ocr_with_coordinates(image: np.ndarray, coordinates: Tuple) -> str:
     Returns:
         str: ocr result
     """
-    # Expand the bounding box coordinates
-    x, y, width, height = coordinates
+    # Expand the bounding box coordinates if provided and crop image
+    if coordinates:
+        x, y, width, height = coordinates
 
-    # Crop the image based on the bounding box coordinates
-    cropped_image = image[y : y + height, x : x + width]
+        # Crop the image based on the bounding box coordinates
+        cropped_image = image[y : y + height, x : x + width]
+    else:
+        cropped_image = image
 
     # Preprocess the image
     preprocessed_image = preprocess_image(cropped_image)

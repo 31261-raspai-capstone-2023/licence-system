@@ -9,7 +9,7 @@ Version: 1.0.0
 from typing import Tuple
 import cv2
 import pytest
-from licence_system.utils.ocr import ocr_with_coordinates
+from licence_system.utils.ocr import ocr_image
 
 
 # Define test cases
@@ -33,7 +33,7 @@ from licence_system.utils.ocr import ocr_with_coordinates
         ("./tests/ocr/10.png", (1, 1, 639, 476), "OZY450"),
     ],
 )
-def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text: str):
+def test_ocr_image(image_path: str, coordinates: Tuple, expected_text: str):
     """Test OCR against image with coordinates
 
     Args:
@@ -48,7 +48,7 @@ def test_ocr_with_coordinates(image_path: str, coordinates: Tuple, expected_text
     # cv2.waitKey(0)
 
     # Call ocr function
-    extracted_text = ocr_with_coordinates(image, coordinates)
+    extracted_text = ocr_image(image, coordinates)
     print(extracted_text)
 
     # Assert
