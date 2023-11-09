@@ -38,3 +38,32 @@ def send_license_plate(license_plate: str, camera_id: int) -> Union[Response, bo
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
+
+
+def add_camera_location(location: str) -> Union[Response, bool]:
+    """
+    Log the location to the web app API
+
+    Args:
+        location (str): The location as a string.
+
+    Returns:
+        requests.Response: The response from the POST request if successful, otherwise False.
+    """
+    # Define the API URL
+    api_url = "http://127.0.0.1:5000/add_camera"
+
+    # Create a dictionary with the data to be sent in the request
+    data = {"location": location}
+
+    # Set the headers for the request
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        # Send a POST request
+        response = requests.post(api_url, json=data, headers=headers, timeout=10)
+        response.raise_for_status()  # This will raise an error for HTTP error codes
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return False
