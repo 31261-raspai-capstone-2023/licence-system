@@ -1,22 +1,20 @@
 """
-This file defines the functions for extracting the plate text from image using OCR
+This module defines defines the functions for extracting the plate text from image using OCR
 
 Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
 License: MIT License
 Version: 1.0.0
 """
 from typing import Tuple
-
-import cv2
-import numpy as np
-import pytesseract
+from io import BytesIO
 import os
 import re
 import json
 
 import cv2
-from io import BytesIO
 import numpy as np
+import pytesseract
+
 import requests
 
 
@@ -39,11 +37,25 @@ if api_key_ocr is None:
 
 
 def ocr_api(image):
+    """
+    Sends an image to the OCR.space API for optical character recognition
+    and returns the extracted text.
+
+    Args:
+        image (np.ndarray): The image to be sent for OCR.
+
+    Returns:
+        str: The cleaned text extracted from the image by the OCR API. If the text
+        is not found or an error occurs, None is returned.
+
+    Raises:
+        HTTPError: If the request to the OCR.space API fails.
+    """
     # Set the API endpoint
     url = "https://api.ocr.space/parse/image"
 
     # Encode the image as a JPEG in memory
-    _, buffer = cv2.imencode(".jpg", image)
+    _, buffer = cv2.imencode(".jpg", image)  # pylint: disable=no-member
     io_buf = BytesIO(buffer)
 
     # Prepare the headers for the HTTP request
@@ -52,7 +64,6 @@ def ocr_api(image):
     }
 
     # Prepare the payload for the POST request
-    # Note: Depending on the specifics, you may add or omit optional parameters
     payload = {
         "isOverlayRequired": True,
         "language": "eng",
@@ -68,7 +79,9 @@ def ocr_api(image):
         "file": ("image.jpg", io_buf, "image/jpeg"),
     }
 
-    response = requests.post(url, headers=headers, data=payload, files=files)
+    response = requests.post(
+        url, headers=headers, data=payload, files=files, timeout=20
+    )
 
     # Check the response
     if response.status_code != 200:
@@ -95,37 +108,22 @@ def ocr_api(image):
     return parsed_text
 
 
-def deskew_image(image):
-    # Use thresholding to get a binary image
-    _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    # Calculate the moments to find the centroid
-    moments = cv2.moments(binary)
-
-    # Calculate the skew based on the moments
-    if moments["mu02"] != 0:
-        skew = moments["mu11"] / moments["mu02"]
-        M = np.float32([[1, skew, -0.5 * image.shape[0] * skew], [0, 1, 0]])
-        # Warp the image to correct the skew
-        img = cv2.warpAffine(
-            binary,
-            M,
-            (image.shape[1], image.shape[0]),
-            flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR,
-        )
-        return img
-
-    # Return the original if no skew was detected
-    return image
-
-
 def ensure_grayscale(image):
+    """
+    Ensures that an image is in grayscale format.
+
+    Args:
+        image (np.ndarray): The input image that needs to be ensured as grayscale.
+
+    Returns:
+        np.ndarray: The image in grayscale format.
+    """
     if len(image.shape) == 2 or image.shape[2] == 1:
         # Image is already in grayscale, so no conversion is necessary
         return image
-    else:
-        # Convert the image to grayscale
-        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Convert the image to grayscale
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # pylint: disable=no-member
 
 
 def resize_image(image, padding=50) -> np.ndarray:
@@ -171,10 +169,14 @@ def get_coords_largest_rectangle(image) -> Tuple[int, int, int, int]:
         Tuple[int, int, int, int]: x, y, w, h coordaintes
     """
     # Set a threshold to identify black (or very dark) regions in the image
-    _, thresh = cv2.threshold(image, 15, 255, cv2.THRESH_BINARY_INV)
+    _, thresh = cv2.threshold(  # pylint: disable=no-member
+        image, 15, 255, cv2.THRESH_BINARY_INV  # pylint: disable=no-member
+    )
 
     # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(  # pylint: disable=no-member
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE  # pylint: disable=no-member
+    )
 
     # Look for the largest rectangle in the contours
     largest_area = 0
@@ -182,7 +184,7 @@ def get_coords_largest_rectangle(image) -> Tuple[int, int, int, int]:
 
     for cnt in contours:
         # Calculate the bounding rectangle
-        x, y, w, h = cv2.boundingRect(cnt)
+        x, y, w, h = cv2.boundingRect(cnt)  # pylint: disable=no-member
         area = w * h
 
         # Choose the largest area which is more likely to be our target rectangle
@@ -192,10 +194,8 @@ def get_coords_largest_rectangle(image) -> Tuple[int, int, int, int]:
 
     if largest_rectangle is not None:
         x, y, w, h = largest_rectangle
-
         return largest_rectangle
-    else:
-        return None
+    return None
 
 
 def increase_contrast(image):
@@ -208,42 +208,66 @@ def increase_contrast(image):
         image: image with increased contrast
     """
     # Convert to YUV
-    image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+    image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)  # pylint: disable=no-member
 
     # Apply histogram equalization
-    image_yuv[:, :, 0] = cv2.equalizeHist(image_yuv[:, :, 0])
+    image_yuv[:, :, 0] = cv2.equalizeHist(  # pylint: disable=no-member
+        image_yuv[:, :, 0]
+    )
 
     # Convert back to BGR
-    output = cv2.cvtColor(image_yuv, cv2.COLOR_YUV2BGR)
+    output = cv2.cvtColor(image_yuv, cv2.COLOR_YUV2BGR)  # pylint: disable=no-member
 
     return output
 
 
 def preprocess_image(image):
+    """
+    Performs preprocessing on an image to prepare it for OCR.
+
+    Args:
+        image (np.ndarray): The image to be preprocessed.
+
+    Returns:
+        np.ndarray: The cropped and preprocessed image ready for OCR.
+    """
     # Convert the image to grayscale
     binary_image = ensure_grayscale(image)
 
     # Apply Non-local Means Denoising
-    blurred_image = cv2.fastNlMeansDenoising(binary_image, None, 5, 7, 21)
+    blurred_image = cv2.fastNlMeansDenoising(  # pylint: disable=no-member
+        binary_image, None, 5, 7, 21
+    )
 
     # Adaptive thresholding
     # this considers small regions of the image to adaptively change the threshold and
     # might work better with varying lighting conditions
-    binary_image = cv2.adaptiveThreshold(
-        blurred_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+    binary_image = cv2.adaptiveThreshold(  # pylint: disable=no-member
+        blurred_image,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,  # pylint: disable=no-member
+        cv2.THRESH_BINARY,  # pylint: disable=no-member
+        11,
+        2,
     )
 
     kernel = np.ones((1, 1), np.uint8)
 
     # Dilation and erosion to close gaps between letters
-    binary_image = cv2.dilate(binary_image, kernel, iterations=1)
-    binary_image = cv2.erode(binary_image, kernel, iterations=1)
+    binary_image = cv2.dilate(  # pylint: disable=no-member
+        binary_image, kernel, iterations=1
+    )
+    binary_image = cv2.erode(  # pylint: disable=no-member
+        binary_image, kernel, iterations=1
+    )
 
     # Morphological closing to close small holes in the foreground
-    binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel)
+    binary_image = cv2.morphologyEx(  # pylint: disable=no-member
+        binary_image, cv2.MORPH_CLOSE, kernel  # pylint: disable=no-member
+    )
 
-    # cv2.imshow("Image", binary_image)
-    # cv2.waitKey(0)
+    # cv2.imshow("Image", binary_image)   # pylint: disable=no-member
+    # cv2.waitKey(0)   # pylint: disable=no-member
     coordinates = get_coords_largest_rectangle(binary_image)
     if coordinates is not None:
         x, y, w, h = coordinates
@@ -252,8 +276,8 @@ def preprocess_image(image):
     while True:
         # new_image = resize_image(cropped_image, 8)
         new_image = resize_image(cropped_image, 10)
-        # cv2.imshow("Image", new_image)
-        # cv2.waitKey(0)
+        # cv2.imshow("Image", new_image)   # pylint: disable=no-member
+        # cv2.waitKey(0)   # pylint: disable=no-member
         coordinates = get_coords_largest_rectangle(new_image)
 
         if coordinates is None:
@@ -266,7 +290,7 @@ def preprocess_image(image):
         max_aspect_ratio = 6
 
         # Check if aspect ratio is within expected range
-        if not (min_aspect_ratio < aspect_ratio < max_aspect_ratio):
+        if not min_aspect_ratio < aspect_ratio < max_aspect_ratio:
             break
 
         # Check if the image is to small to be reagit pu
@@ -274,11 +298,11 @@ def preprocess_image(image):
             break
 
         cropped_image = new_image[y : y + h, x : x + w]
-        # cv2.imshow("Image", cropped_image)
-        # cv2.waitKey(0)
+        # cv2.imshow("Image", cropped_image)   # pylint: disable=no-member
+        # cv2.waitKey(0)   # pylint: disable=no-member
 
-    # cv2.imshow("STOPPED", cropped_image)
-    # cv2.waitKey(0)
+    # cv2.imshow("STOPPED", cropped_image)   # pylint: disable=no-member
+    # cv2.waitKey(0)   # pylint: disable=no-member
     return cropped_image
 
 
@@ -292,7 +316,7 @@ def extract_license_plate_text(preprocessed_image) -> str:
         str: text of the licence plate
     """
     # Use Tesseract to do OCR on the preprocessed image
-    custom_config = r"--oem 3 --psm 11 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    custom_config = r"--oem 3 --psm 11 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # pylint: disable=line-too-long
     text = pytesseract.image_to_string(
         preprocessed_image,
         config=custom_config,
@@ -323,14 +347,14 @@ def extract_license_plate_text_all_ocr_modes(preprocessed_image) -> str:
     texts = []
     for i in range(0, 13):
         try:
-            custom_config = f"--oem 3 --psm {i} -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # You might need to adjust the psm value based on your images
+            custom_config = f"--oem 3 --psm {i} -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # pylint: disable=line-too-long
             text = pytesseract.image_to_string(
                 preprocessed_image,
                 config=custom_config,
                 lang="eng",
             )
             texts.append(f"{i}: {text}")
-        except:
+        except:  # pylint: disable=bare-except
             pass
 
     return texts

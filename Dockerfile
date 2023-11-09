@@ -11,6 +11,7 @@ COPY . /licence_system
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
+    python3-picamera2 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

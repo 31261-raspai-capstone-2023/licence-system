@@ -1,5 +1,5 @@
 """
-This file defines the functions for training the NN
+This module defines the functions for training the NN
 
 Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
 License: MIT License
@@ -14,18 +14,20 @@ from torch import nn
 from torch import optim
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
+from jupyterplot import ProgressPlot
 from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.logger import logger
-from licence_system.utils.model_class import LPLocalNet, LPR_Training_Dataset_Processed
+from licence_system.utils.model_class import LPLocalNet, LPRTrainingDatasetProcessed
 from licence_system.config import ACCEPTABLE_DISTANCE
-from jupyterplot import ProgressPlot
 
 
-def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
+def train(  # pylint: disable=too-many-locals, too-many-statements
+    training_dataset: LPRTrainingDatasetProcessed,
+) -> int:
     """Trainer main function
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        training_dataset (LPRTrainingDatasetProcessed): training dataset object
 
     Returns:
         int: final epoch value
@@ -41,11 +43,11 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     #    0   , will disable
 
     # Constants
-    BATCH_SIZE = 300
-    EPOCHS = 700
-    LEARNING_RATE = 0.001
-    PRELOAD_ALL_DATA_TO_GPU = False
-    LOSS_ABANDON = 0
+    BATCH_SIZE = 300  # pylint: disable=invalid-name
+    EPOCHS = 700  # pylint: disable=invalid-name
+    LEARNING_RATE = 0.001  # pylint: disable=invalid-name
+    PRELOAD_ALL_DATA_TO_GPU = False  # pylint: disable=invalid-name
+    LOSS_ABANDON = 0  # pylint: disable=invalid-name
 
     # Helper function to convert seconds to hours, minutes, seconds format
     def seconds_to_hms(seconds):
@@ -68,8 +70,12 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
 
     # Preloading data to GPU if required
     if PRELOAD_ALL_DATA_TO_GPU:
-        train_X_gpu = training_dataset.train_X.to(device)
-        train_Y_gpu = training_dataset.train_Y.to(device)
+        train_X_gpu = training_dataset.train_X.to(  # pylint: disable=invalid-name
+            device
+        )
+        train_Y_gpu = training_dataset.train_Y.to(  # pylint: disable=invalid-name
+            device
+        )
         dataset = TensorDataset(train_X_gpu, train_Y_gpu)
     else:
         dataset = TensorDataset(training_dataset.train_X, training_dataset.train_Y)
@@ -105,12 +111,14 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     for epoch in range(EPOCHS):
         epoch_start_time = time.time()
 
-        for batch_X, batch_y in loader:  # tqdm(loader, unit="batch"):
+        for batch_X, batch_y in loader:  # pylint: disable=invalid-name
             if PRELOAD_ALL_DATA_TO_GPU:
-                batch_X = batch_X.view(-1, 1, 416, 416)
+                batch_X = batch_X.view(-1, 1, 416, 416)  # pylint: disable=invalid-name
             else:
-                batch_X = batch_X.to(device).view(-1, 1, 416, 416)
-                batch_y = batch_y.to(device)
+                batch_X = batch_X.to(device).view(  # pylint: disable=invalid-name
+                    -1, 1, 416, 416
+                )
+                batch_y = batch_y.to(device)  # pylint: disable=invalid-name
 
             # This removes bad data, but should probably try fix it instead!
             if batch_y.shape[0] == 0:
@@ -180,11 +188,11 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     return final_epoch
 
 
-def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
+def get_accuracy(training_dataset: LPRTrainingDatasetProcessed) -> float:
     """Get the accuracy of the model
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        training_dataset (LPRTrainingDatasetProcessed): training dataset object
 
     Returns:
         float: accuracy
@@ -265,7 +273,7 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
 
 
 def save_model(
-    training_dataset: LPR_Training_Dataset_Processed,
+    training_dataset: LPRTrainingDatasetProcessed,
     epochs: int,
     batch_size: int,
     learning_rate: float,
@@ -275,7 +283,8 @@ def save_model(
     Save the PyTorch model with a filename constructed from training parameters.
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): The model object containing the model to save
+        training_dataset (LPRTrainingDatasetProcessed): The model object
+                                                        containing the model to save
         final_epoch (int):  Number of epochs for training
         batch_size (int): Batch size used during training
         learning_rate (float): Learning rate used during training

@@ -7,9 +7,9 @@ Version: 1.0.0
 """
 import faulthandler
 import time
-import numpy as np
 import os
-from licence_system.utils.model_class import LPR_Inference
+import numpy as np
+from licence_system.utils.model_class import LPRInference
 from licence_system.utils.live import CameraCapture
 from licence_system.utils.ocr import ocr_image
 from licence_system.utils.log_plate import send_license_plate
@@ -17,14 +17,13 @@ from licence_system.utils.log_plate import send_license_plate
 faulthandler.enable()
 
 # Retrieve the LPR_CAMERA_ID environment variable
-# CAMERA_ID = os.getenv("LPR_CAMERA_ID")
-CAMERA_ID = 1
+CAMERA_ID = os.getenv("LPR_CAMERA_ID")
 
 # If the environment variable is not set, raise an exception
 if CAMERA_ID is None:
     raise EnvironmentError("The LPR_CAMERA_ID environment variable is not set.")
 
-inference_class = LPR_Inference(
+inference_class = LPRInference(
     model_path="licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.22.pth",
     display_output=True,
 )
