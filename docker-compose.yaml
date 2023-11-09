@@ -11,3 +11,4 @@ services:
     image: licence_system/licence_system
     environment:
       - TZ=Australia/Sydney
+      - OCR_API_KEY=""
