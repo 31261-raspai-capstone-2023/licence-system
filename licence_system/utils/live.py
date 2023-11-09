@@ -10,7 +10,7 @@ import time
 from picamera2 import Picamera2, Preview
 
 
-class CameraCapture:
+class CameraCapture:  # pylint: disable=too-few-public-methods
     """
     A CameraCapture class to handle pi camera feed and capture images.
 

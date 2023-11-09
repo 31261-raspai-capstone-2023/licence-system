@@ -8,45 +8,40 @@ Version: 1.0.0
 
 import os
 import xml.etree.ElementTree as ET
+from typing import Tuple
 import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
 from PIL import Image
 from tqdm import tqdm
-from typing import Tuple
 
 
-class LPRTrainingDatasetProcessed:
+class LPRTrainingDatasetProcessed:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """
     A class to handle the processed training dataset for license plate recognition.
-
-    Attributes:
-        image_path (str): Path to the images folder.
-        annotation_path (str): Path to the annotations folder.
-        testing_images_size (float): Proportion of images to be used for testing.
     """
 
     def __init__(
         self, image_path: str, annotation_path: str, testing_images_size: float
     ):
-        self.IMAGES_FOLDER: str = image_path
-        self.ANNOTATIONS_FOLDER: str = annotation_path
-        self.TESTING_IMAGES_SIZE: float = testing_images_size
+        self.IMAGES_FOLDER = image_path  # pylint: disable=invalid-name
+        self.ANNOTATIONS_FOLDER = annotation_path  # pylint: disable=invalid-name
+        self.TESTING_IMAGES_SIZE = testing_images_size  # pylint: disable=invalid-name
 
         self.img_list = os.listdir(self.IMAGES_FOLDER)
 
-        self.training_data: list = []
-        self.testing_data: list = []
+        self.training_data = []
+        self.testing_data = []
 
-        self.train_X: torch.Tensor = None
-        self.train_Y: torch.Tensor = None
-        self.test_X: torch.Tensor = None
-        self.test_Y: torch.Tensor = None
+        self.train_X: torch.Tensor = None  # pylint: disable=invalid-name
+        self.train_Y: torch.Tensor = None  # pylint: disable=invalid-name
+        self.test_X: torch.Tensor = None  # pylint: disable=invalid-name
+        self.test_Y: torch.Tensor = None  # pylint: disable=invalid-name
 
         self.neural_network: nn.Module = None
 
-    def create_training_data(self):
+    def create_training_data(self):  # pylint: disable=too-many-locals
         """
         Creates and processes training data from images and annotations.
         """
@@ -56,11 +51,13 @@ class LPRTrainingDatasetProcessed:
         for a in tqdm(range(max(2000, len(self.img_list)))):
             img_data = self.img_list[a]
             img_path = os.path.join(self.IMAGES_FOLDER, img_data)
-            ANNOTATIONS_FOLDER = os.path.join(
+            ANNOTATIONS_FOLDER = os.path.join(  # pylint: disable=invalid-name
                 self.ANNOTATIONS_FOLDER, img_data.replace(".jpg", ".xml")
             )  # get required image annotations
             with Image.open(img_path).convert("L") as img:
-                with open(ANNOTATIONS_FOLDER) as source:
+                with open(  # pylint: disable=unspecified-encoding
+                    ANNOTATIONS_FOLDER
+                ) as source:
                     root = ET.parse(source).getroot()
 
                     # Iterate through the XML and extract bounding box coordinates
@@ -79,7 +76,7 @@ class LPRTrainingDatasetProcessed:
                     )  # resize bounding box to fit resized image
 
                     if i < testing_size:
-                        # self.testing_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
+                        # self.testing_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)]) # pylint: disable=line-too-long
                         self.testing_data.append(
                             [np.asarray(img), bounding_box_coordinates]
                         )
@@ -87,7 +84,7 @@ class LPRTrainingDatasetProcessed:
                         self.training_data.append(
                             [np.asarray(img), bounding_box_coordinates]
                         )
-                        # self.training_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])
+                        # self.training_data.append([torch.Tensor(np.asarray(img)).view(-1, 416, 416) / 255, torch.Tensor(bounding_box_coordinates)])# pylint: disable=line-too-long
             i += 1
 
         np.random.shuffle(self.training_data)
@@ -108,10 +105,10 @@ class LPRInference:
     def __init__(
         self, model_path: str, display_output: bool = False, bbox_buffer: int = 15
     ):
-        self.PATH = model_path
-        self.MODEL = LPLocalNet()
-        self.DISPLAY_OUTPUT = display_output
-        self.BBOX_BUFFER = bbox_buffer
+        self.PATH = model_path  # pylint: disable=invalid-name
+        self.MODEL = LPLocalNet()  # pylint: disable=invalid-name
+        self.DISPLAY_OUTPUT = display_output  # pylint: disable=invalid-name
+        self.BBOX_BUFFER = bbox_buffer  # pylint: disable=invalid-name
 
         self.__load()
 
@@ -129,8 +126,8 @@ class LPRInference:
         """
         Perform preprocessing
         """
-        X = torch.Tensor(image)
-        X = X / 255.0
+        X = torch.Tensor(image)  # pylint: disable=invalid-name
+        X = X / 255.0  # pylint: disable=invalid-name
         return X
 
     def __resize_bounding_box_from_image(
@@ -160,7 +157,8 @@ class LPRInference:
 
         Args:
             pred (torch.Tensor): A 4D tensor representing the predicted image,
-                                with dimensions corresponding to [batch_size, channels, height, width].
+                                with dimensions corresponding to
+                                [batch_size, channels, height, width].
 
         Returns:
             Image: A PIL image obtained from the input tensor.
@@ -173,16 +171,18 @@ class LPRInference:
 
     def get_bb_from_tensor(self, tensor):
         """
-        Processes an input tensor to extract the bounding box and crops the image to this bounding box.
+        Processes an input tensor to extract the bounding box
+        and crops the image to this bounding box.
 
         Args:
-            tensor (torch.Tensor): A 4D tensor representing the input image to the model,
-                                with dimensions corresponding to [batch_size, channels, height, width].
+            tensor (torch.Tensor): A 4D tensor representing the input image
+                                    to the model, with dimensions corresponding to
+                                    [batch_size, channels, height, width].
 
         Returns:
             Image: A PIL image that is cropped to the predicted bounding box coordinates.
         """
-        X = tensor.detach().clone()
+        X = tensor.detach().clone()  # pylint: disable=invalid-name
         # Pass image into model
         print("Passing image into model...")
         model_in = X.view(-1, 1, 416, 416)
@@ -212,11 +212,12 @@ class LPRInference:
         Obtains the bounding box from an image and returns the cropped image at the bounding box.
 
         Args:
-            image (Union[str, Image.Image]): The input image which can be a file path or a PIL Image object.
+            image (Union[str, Image.Image]): The input image which can be a file path
+                                                or a PIL Image object.
 
         Returns:
-            Image: A PIL image cropped to the bounding box predicted by the model. If 'DISPLAY_OUTPUT' is True,
-                it also displays the cropped image.
+            Image: A PIL image cropped to the bounding box predicted by the model.
+                    If 'DISPLAY_OUTPUT' is True, it also displays the cropped image.
 
         Raises:
             ValueError: If the provided image input is neither a file path nor an Image object.
@@ -244,7 +245,7 @@ class LPRInference:
 
             # Preprocess the image
             print("Preprocessing image...")
-            X = self.__image_preprocessing(numpy_data)
+            X = self.__image_preprocessing(numpy_data)  # pylint: disable=invalid-name
 
             # Pass image into model
             print("Passing image into model...")
@@ -271,7 +272,7 @@ class LPRInference:
             return cropped_img
 
 
-class LPLocalNet(nn.Module):
+class LPLocalNet(nn.Module):  # pylint: disable=too-many-instance-attributes
     """
     A convolutional neural network module for localizing license plates in images.
 
@@ -279,7 +280,7 @@ class LPLocalNet(nn.Module):
     """
 
     def __init__(self):
-        super(LPLocalNet, self).__init__()
+        super().__init__()
 
         # CNNs for grayscale images
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
@@ -321,7 +322,7 @@ class LPLocalNet(nn.Module):
 
         t = self.conv5(t)
         t = F.relu(t)
-        t = F.avg_pool2d(t, kernel_size=4, stride=2)
+        t = F.avg_pool2d(t, kernel_size=4, stride=2)  # pylint: disable=not-callable
 
         t = torch.flatten(t, start_dim=1)
 

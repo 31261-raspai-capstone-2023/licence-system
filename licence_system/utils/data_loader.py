@@ -57,16 +57,19 @@ def separate_images_and_annotations(
     logger.info("Separation completed.")
 
 
-def show_imgs(data: list):
+def show_imgs(data: list):  # pylint: disable=too-many-locals
     """
     Display multiple images with bounding boxes.
 
     Args:
-        data: A list of lists. Each inner list contains: [title, image, original_bbox, predicted_bbox]
+        data: A list of lists. Each inner list contains:
+            [title, image, original_bbox, predicted_bbox]
     """
 
     num_imgs = len(data)
-    fig, axes = plt.subplots(1, num_imgs, figsize=(15, 5 * num_imgs))
+    fig, axes = plt.subplots(  # pylint: disable=unused-variable
+        1, num_imgs, figsize=(15, 5 * num_imgs)
+    )
 
     # If there's only one image, axes won't be a list, so we wrap it in a list for consistency
     if num_imgs == 1:
@@ -133,9 +136,9 @@ def split_data(
     """
     resized_images = [Image.fromarray(i[0]) for i in training_dataset.training_data]
     numpy_data = np.array([np.array(img.resize((416, 416))) for img in resized_images])
-    X = torch.Tensor(numpy_data)
+    X = torch.Tensor(numpy_data)  # pylint: disable=invalid-name
 
-    X = X / 255.0
+    X = X / 255.0  # pylint: disable=invalid-name
 
     numpy_bbox = np.array(
         [
@@ -178,6 +181,6 @@ def split_data(
     show_imgs(demo_arr)
     demo_arr = []
     for i in range(5):
-        orig_img = Image.fromarray(training_dataset.training_data[i][0])
+        # orig_img = Image.fromarray(training_dataset.training_data[i][0])
         demo_arr.append([f"Image #{i}", numpy_data[i], numpy_bbox[i], [10, 20, 30, 40]])
     show_imgs(demo_arr)
