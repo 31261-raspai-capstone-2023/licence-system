@@ -31,13 +31,13 @@ def send_license_plate(license_plate: str, camera_id: int) -> Union[Response, bo
     # Set the headers for the request
     headers = {"Content-Type": "application/json"}
 
-    # try:
-    response = requests.post(api_url, json=data, headers=headers, timeout=10)
-    response.raise_for_status()
-    return response
-    # except requests.exceptions.RequestException as e:
-    #     print(f"An error occurred: {e}")
-    #     return None
+    try:
+        response = requests.post(api_url, json=data, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
 
 
 def add_camera_location(location: str) -> Union[Response, bool]:
