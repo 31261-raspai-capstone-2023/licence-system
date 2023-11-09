@@ -12,3 +12,4 @@ services:
     environment:
       - TZ=Australia/Sydney
       - OCR_API_KEY=""
+      - LPR_CAMERA_ID=1

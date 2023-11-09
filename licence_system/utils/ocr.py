@@ -1,22 +1,20 @@
 """
-This file defines the functions for extracting the plate text from image using OCR
+This module defines defines the functions for extracting the plate text from image using OCR
 
 Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
 License: MIT License
 Version: 1.0.0
 """
 from typing import Tuple
-
-import cv2
-import numpy as np
-import pytesseract
+from io import BytesIO
 import os
 import re
 import json
 
 import cv2
-from io import BytesIO
 import numpy as np
+import pytesseract
+
 import requests
 
 
@@ -39,6 +37,20 @@ if api_key_ocr is None:
 
 
 def ocr_api(image):
+    """
+    Sends an image to the OCR.space API for optical character recognition
+    and returns the extracted text.
+
+    Args:
+        image (np.ndarray): The image to be sent for OCR.
+
+    Returns:
+        str: The cleaned text extracted from the image by the OCR API. If the text
+        is not found or an error occurs, None is returned.
+
+    Raises:
+        HTTPError: If the request to the OCR.space API fails.
+    """
     # Set the API endpoint
     url = "https://api.ocr.space/parse/image"
 
@@ -52,7 +64,6 @@ def ocr_api(image):
     }
 
     # Prepare the payload for the POST request
-    # Note: Depending on the specifics, you may add or omit optional parameters
     payload = {
         "isOverlayRequired": True,
         "language": "eng",
@@ -68,7 +79,9 @@ def ocr_api(image):
         "file": ("image.jpg", io_buf, "image/jpeg"),
     }
 
-    response = requests.post(url, headers=headers, data=payload, files=files)
+    response = requests.post(
+        url, headers=headers, data=payload, files=files, timeout=20
+    )
 
     # Check the response
     if response.status_code != 200:
@@ -95,37 +108,22 @@ def ocr_api(image):
     return parsed_text
 
 
-def deskew_image(image):
-    # Use thresholding to get a binary image
-    _, binary = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    # Calculate the moments to find the centroid
-    moments = cv2.moments(binary)
-
-    # Calculate the skew based on the moments
-    if moments["mu02"] != 0:
-        skew = moments["mu11"] / moments["mu02"]
-        M = np.float32([[1, skew, -0.5 * image.shape[0] * skew], [0, 1, 0]])
-        # Warp the image to correct the skew
-        img = cv2.warpAffine(
-            binary,
-            M,
-            (image.shape[1], image.shape[0]),
-            flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR,
-        )
-        return img
-
-    # Return the original if no skew was detected
-    return image
-
-
 def ensure_grayscale(image):
+    """
+    Ensures that an image is in grayscale format.
+
+    Args:
+        image (np.ndarray): The input image that needs to be ensured as grayscale.
+
+    Returns:
+        np.ndarray: The image in grayscale format.
+    """
     if len(image.shape) == 2 or image.shape[2] == 1:
         # Image is already in grayscale, so no conversion is necessary
         return image
-    else:
-        # Convert the image to grayscale
-        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Convert the image to grayscale
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 
 def resize_image(image, padding=50) -> np.ndarray:
@@ -192,10 +190,8 @@ def get_coords_largest_rectangle(image) -> Tuple[int, int, int, int]:
 
     if largest_rectangle is not None:
         x, y, w, h = largest_rectangle
-
         return largest_rectangle
-    else:
-        return None
+    return None
 
 
 def increase_contrast(image):
@@ -220,6 +216,15 @@ def increase_contrast(image):
 
 
 def preprocess_image(image):
+    """
+    Performs preprocessing on an image to prepare it for OCR.
+
+    Args:
+        image (np.ndarray): The image to be preprocessed.
+
+    Returns:
+        np.ndarray: The cropped and preprocessed image ready for OCR.
+    """
     # Convert the image to grayscale
     binary_image = ensure_grayscale(image)
 
@@ -266,7 +271,7 @@ def preprocess_image(image):
         max_aspect_ratio = 6
 
         # Check if aspect ratio is within expected range
-        if not (min_aspect_ratio < aspect_ratio < max_aspect_ratio):
+        if not min_aspect_ratio < aspect_ratio < max_aspect_ratio:
             break
 
         # Check if the image is to small to be reagit pu

@@ -1,38 +1,31 @@
 """
-This file defines all the utility functions for logging a plate to the front end web app
+This module provides utility functions for sending license plate
+data and camera location to a front-end web app.
 
 Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
 License: MIT License
 Version: 1.0.0
 """
-from typing import Union
 
+from typing import Optional
 import requests
 from requests import Response
 
 
-def send_license_plate(license_plate: str, camera_id: int) -> Union[Response, bool]:
+def make_request(url: str, data: dict, headers: dict) -> Optional[Response]:
     """
-    Log plate and camera ID to web app API
+    Makes a POST request to the given URL with the provided data and headers.
 
     Args:
-        license_plate (str): The license plate as a string.
-        camera_id (int): The camera ID as an integer.
+        url (str): The API endpoint to which the request is to be sent.
+        data (dict): The payload to be sent in the request.
+        headers (dict): The headers to be sent in the request.
 
     Returns:
-        requests.Response: The response from the POST request.
+        Optional[Response]: The response from the POST request if successful, otherwise None.
     """
-    # Define the API URL
-    api_url = "http://127.0.0.1:5000/add_location_entry"
-
-    # Create a dictionary with the data to be sent in the request
-    data = {"plate": license_plate, "camera_id": camera_id}
-
-    # Set the headers for the request
-    headers = {"Content-Type": "application/json"}
-
     try:
-        response = requests.post(api_url, json=data, headers=headers, timeout=10)
+        response = requests.post(url, json=data, headers=headers, timeout=10)
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:
@@ -40,30 +33,36 @@ def send_license_plate(license_plate: str, camera_id: int) -> Union[Response, bo
         return None
 
 
-def add_camera_location(location: str) -> Union[Response, bool]:
+def send_license_plate(license_plate: str, camera_id: int) -> Optional[Response]:
     """
-    Log the location to the web app API
+    Sends a license plate number along with the camera ID to a web app API.
+
+    Args:
+        license_plate (str): The license plate as a string.
+        camera_id (int): The camera ID as an integer.
+
+    Returns:
+        Optional[Response]: The response from the POST request if successful, otherwise None.
+    """
+    api_url = "http://127.0.0.1:5000/add_location_entry"
+    data = {"plate": license_plate, "camera_id": camera_id}
+    headers = {"Content-Type": "application/json"}
+
+    return make_request(api_url, data, headers)
+
+
+def add_camera_location(location: str) -> Optional[Response]:
+    """
+    Sends a camera location to a web app API.
 
     Args:
         location (str): The location as a string.
 
     Returns:
-        requests.Response: The response from the POST request if successful, otherwise False.
+        Optional[Response]: The response from the POST request if successful, otherwise None.
     """
-    # Define the API URL
     api_url = "http://127.0.0.1:5000/add_camera"
-
-    # Create a dictionary with the data to be sent in the request
     data = {"location": location}
-
-    # Set the headers for the request
     headers = {"Content-Type": "application/json"}
 
-    try:
-        # Send a POST request
-        response = requests.post(api_url, json=data, headers=headers, timeout=10)
-        response.raise_for_status()  # This will raise an error for HTTP error codes
-        return response
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-        return False
+    return make_request(api_url, data, headers)

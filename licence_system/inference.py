@@ -9,12 +9,12 @@ import faulthandler
 import os
 import random
 import numpy as np
-from licence_system.utils.model_class import LPR_Inference
+from licence_system.utils.model_class import LPRInference
 from licence_system.utils.ocr import ocr_image
 
 faulthandler.enable()
 
-inference_class = LPR_Inference(
+inference_class = LPRInference(
     model_path="licence_system/models/checkpoints/LPLocalNet_B250_E500_LR0.0010_Acc74.22.pth",
     display_output=True,
 )

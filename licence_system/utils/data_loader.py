@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
-from licence_system.utils.model_class import LPR_Training_Dataset_Processed
+from licence_system.utils.model_class import LPRTrainingDatasetProcessed
 from licence_system.utils.logger import logger
 
 
@@ -57,7 +57,6 @@ def separate_images_and_annotations(
     logger.info("Separation completed.")
 
 
-# TO-DO: move to data_visualisations
 def show_imgs(data: list):
     """
     Display multiple images with bounding boxes.
@@ -124,12 +123,12 @@ def show_imgs(data: list):
 
 
 def split_data(
-    training_dataset: LPR_Training_Dataset_Processed, test_to_train_percent: float
+    training_dataset: LPRTrainingDatasetProcessed, test_to_train_percent: float
 ):
     """Split the training dataset into training and test sets.
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        training_dataset (LPRTrainingDatasetProcessed): training dataset object
         test_to_train_percent (float): float percentage of test to train data
     """
     resized_images = [Image.fromarray(i[0]) for i in training_dataset.training_data]

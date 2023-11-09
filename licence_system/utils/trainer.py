@@ -1,5 +1,5 @@
 """
-This file defines the functions for training the NN
+This module defines the functions for training the NN
 
 Authors: Erencan Pelin, Daniel Angeloni, Ben Carroll, Declan Seeto
 License: MIT License
@@ -16,16 +16,16 @@ from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 from licence_system.utils.data_loader import show_imgs
 from licence_system.utils.logger import logger
-from licence_system.utils.model_class import LPLocalNet, LPR_Training_Dataset_Processed
+from licence_system.utils.model_class import LPLocalNet, LPRTrainingDatasetProcessed
 from licence_system.config import ACCEPTABLE_DISTANCE
 from jupyterplot import ProgressPlot
 
 
-def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
+def train(training_dataset: LPRTrainingDatasetProcessed) -> int:
     """Trainer main function
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        training_dataset (LPRTrainingDatasetProcessed): training dataset object
 
     Returns:
         int: final epoch value
@@ -180,11 +180,11 @@ def train(training_dataset: LPR_Training_Dataset_Processed) -> int:
     return final_epoch
 
 
-def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
+def get_accuracy(training_dataset: LPRTrainingDatasetProcessed) -> float:
     """Get the accuracy of the model
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): training dataset object
+        training_dataset (LPRTrainingDatasetProcessed): training dataset object
 
     Returns:
         float: accuracy
@@ -265,7 +265,7 @@ def get_accuracy(training_dataset: LPR_Training_Dataset_Processed) -> float:
 
 
 def save_model(
-    training_dataset: LPR_Training_Dataset_Processed,
+    training_dataset: LPRTrainingDatasetProcessed,
     epochs: int,
     batch_size: int,
     learning_rate: float,
@@ -275,7 +275,7 @@ def save_model(
     Save the PyTorch model with a filename constructed from training parameters.
 
     Args:
-        training_dataset (LPR_Training_Dataset_Processed): The model object containing the model to save
+        training_dataset (LPRTrainingDatasetProcessed): The model object containing the model to save
         final_epoch (int):  Number of epochs for training
         batch_size (int): Batch size used during training
         learning_rate (float): Learning rate used during training
